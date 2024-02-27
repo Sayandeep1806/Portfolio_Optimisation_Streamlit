@@ -55,5 +55,5 @@ out_sample_end_month = st.sidebar.selectbox("Select end month for out-of-sample 
 
 # Display selected periods
 st.write("## Selected Periods")
-st.write(f"In-Sample Period: {min_month.strftime('%B %Y')} to {in_sample_end_month.strftime('%B %Y')}")
-st.write(f"Out-of-Sample Period (Forecasting period): {out_sample_start_month.strftime('%B %Y')} to {out_sample_end_month.strftime('%B %Y')}")
+st.write(f"In-Sample Period: {min_month.strftime('%B %Y')} to {in_sample_end_month}")
+st.write(f"Out-of-Sample Period (Forecasting period): {out_sample_start_month.strftime('%B %Y')} to {out_sample_end_month}")
