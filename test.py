@@ -37,13 +37,6 @@ df = pd.DataFrame(data)
 # Convert date to mm-yyyy format
 df['MonthYear'] = df['Date'].dt.strftime('%m-%Y')
 
-# Define a function to perform SARIMAX forecasting
-def sarimax_forecast(train_data, exog_train, exog_forecast, order, seasonal_order):
-    model = SARIMAX(train_data, exog=exog_train, order=order, seasonal_order=seasonal_order)
-    model_fit = model.fit(disp=False)
-    forecast = model_fit.forecast(steps=len(exog_forecast), exog=exog_forecast)
-    return forecast
-
 # Streamlit app
 st.title('Portfolio Optimisation Tool')
 
@@ -68,21 +61,34 @@ st.write("## Selected Periods")
 st.write(f"In-Sample Period: {min_month} to {in_sample_end_month}")
 st.write(f"Out-of-Sample Period (Forecasting period): {out_sample_start_month} to {out_sample_end_month}")
 
-# Extract in-sample and out-of-sample data
-in_sample_data = df[df['Date'] <= in_sample_end_month.end_time]
-out_sample_data = df[(df['Date'] > in_sample_end_month.end_time) & (df['Date'] <= out_sample_end_month.end_time)]
+# Convert periods to timestamps
+in_sample_end_month_timestamp = pd.Timestamp(in_sample_end_month.end_time)
+out_sample_end_month_timestamp = pd.Timestamp(out_sample_end_month.end_time)
 
-# Perform SARIMAX forecasting for SPX
-spx_forecast = sarimax_forecast(train_data=in_sample_data['SPX'],
-                                 exog_train=in_sample_data['GS1M'],
-                                 exog_forecast=out_sample_data['GS1M'],
-                                 order=(1, 1, 1),
-                                 seasonal_order=(1, 1, 1, 12))
+# Filter data for in-sample and out-of-sample periods
+in_sample_data = df[df['Date'] <= in_sample_end_month_timestamp]
+out_sample_data = df[df['Date'] > in_sample_end_month_timestamp]
 
-# Plotting the actual and forecasted values
+# Fit SARIMAX models
+spx_model = SARIMAX(in_sample_data['SPX'], order=(1, 1, 1), seasonal_order=(1, 1, 1, 12))
+spx_results = spx_model.fit()
+gs1m_model = SARIMAX(in_sample_data['GS1M'], order=(1, 1, 1), seasonal_order=(1, 1, 1, 12))
+gs1m_results = gs1m_model.fit()
+
+# Forecast
+spx_forecast = spx_results.get_forecast(steps=len(out_sample_data))
+gs1m_forecast = gs1m_results.get_forecast(steps=len(out_sample_data))
+
+# Confidence intervals
+spx_conf_int = spx_forecast.conf_int()
+gs1m_conf_int = gs1m_forecast.conf_int()
+
+# Plotting
 plt.figure(figsize=(10, 6))
-plt.plot(df['Date'], df['SPX'], label='Actual SPX')
-plt.plot(out_sample_data['Date'], spx_forecast, label='Forecasted SPX')
+plt.plot(in_sample_data['Date'], in_sample_data['SPX'], label='In-Sample SPX')
+plt.plot(out_sample_data['Date'], out_sample_data['SPX'], label='Out-of-Sample SPX', color='green')
+plt.plot(out_sample_data['Date'], spx_forecast.predicted_mean, label='Forecasted SPX', color='red')
+plt.fill_between(out_sample_data['Date'], spx_conf_int.iloc[:, 0], spx_conf_int.iloc[:, 1], color='pink', alpha=0.3)
 plt.title('SPX Forecasting')
 plt.xlabel('Date')
 plt.ylabel('SPX')
@@ -90,17 +96,11 @@ plt.legend()
 plt.xticks(rotation=45)
 st.pyplot(plt)
 
-# Perform SARIMAX forecasting for GS1M
-gs1m_forecast = sarimax_forecast(train_data=in_sample_data['GS1M'],
-                                  exog_train=in_sample_data['SPX'],
-                                  exog_forecast=out_sample_data['SPX'],
-                                  order=(1, 1, 1),
-                                  seasonal_order=(1, 1, 1, 12))
-
-# Plotting the actual and forecasted values
 plt.figure(figsize=(10, 6))
-plt.plot(df['Date'], df['GS1M'], label='Actual GS1M')
-plt.plot(out_sample_data['Date'], gs1m_forecast, label='Forecasted GS1M')
+plt.plot(in_sample_data['Date'], in_sample_data['GS1M'], label='In-Sample GS1M')
+plt.plot(out_sample_data['Date'], out_sample_data['GS1M'], label='Out-of-Sample GS1M', color='green')
+plt.plot(out_sample_data['Date'], gs1m_forecast.predicted_mean, label='Forecasted GS1M', color='blue')
+plt.fill_between(out_sample_data['Date'], gs1m_conf_int.iloc[:, 0], gs1m_conf_int.iloc[:, 1], color='lightblue', alpha=0.3)
 plt.title('GS1M Forecasting')
 plt.xlabel('Date')
 plt.ylabel('GS1M')
