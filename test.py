@@ -64,9 +64,33 @@ in_sample_data = df[df['Date'].dt.to_period('M') <= in_sample_end_month.end_time
 out_sample_data = df[(df['Date'].dt.to_period('M') >= out_sample_start_month.start_time) &
                      (df['Date'].dt.to_period('M') <= out_sample_end_month.end_time)]
 
-st.write("## Data for Selected Periods")
-st.write("### In-Sample Period")
-st.write(in_sample_data)
+# Time series forecasting using ARIMA
+def forecast_arima(series, order):
+    model = ARIMA(series, order=order)
+    model_fit = model.fit()
+    forecast = model_fit.forecast(steps=len(series))
+    return forecast
 
-st.write("### Out-of-Sample Period")
-st.write(out_sample_data)
+spx_forecast = forecast_arima(in_sample_data['SPX'], order=(5,1,0))
+gs1m_forecast = forecast_arima(in_sample_data['GS1M'], order=(5,1,0))
+
+# Plotting
+plt.figure(figsize=(12, 6))
+plt.plot(df['Date'], df['SPX'], label='Actual SPX', color='blue')
+plt.plot(df['Date'], spx_forecast, label='Forecasted SPX', color='red')
+plt.xlabel('Date')
+plt.ylabel('SPX')
+plt.title('SPX Forecasting')
+plt.legend()
+plt.grid(True)
+st.pyplot(plt)
+
+plt.figure(figsize=(12, 6))
+plt.plot(df['Date'], df['GS1M'], label='Actual GS1M', color='blue')
+plt.plot(df['Date'], gs1m_forecast, label='Forecasted GS1M', color='red')
+plt.xlabel('Date')
+plt.ylabel('GS1M')
+plt.title('GS1M Forecasting')
+plt.legend()
+plt.grid(True)
+st.pyplot(plt)
