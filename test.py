@@ -1,8 +1,7 @@
 import streamlit as st
 import pandas as pd
-import numpy as np
 from datetime import datetime, timedelta
-from statsmodels.tsa.arima.model import ARIMA
+from statsmodels.tsa.statespace.sarimax import SARIMAX
 import matplotlib.pyplot as plt
 
 # Sample data provided
@@ -67,33 +66,36 @@ in_sample_data = df[df['Date'].dt.to_period('M') <= in_sample_end_month.end_time
 out_sample_data = df[(df['Date'].dt.to_period('M') >= out_sample_start_month.start_time) &
                      (df['Date'].dt.to_period('M') <= out_sample_end_month.end_time)]
 
-# Time series forecasting using ARIMA
-def forecast_arima(series, order):
-    model = ARIMA(series, order=order)
-    model_fit = model.fit()
-    forecast = model_fit.forecast(steps=len(series))
-    return forecast
+# Time series forecasting using SARIMA for SPX
+spx_model = SARIMAX(in_sample_data['SPX'], order=(1, 1, 1), seasonal_order=(1, 1, 1, 12))
+spx_results = spx_model.fit()
+spx_forecast = spx_results.forecast(steps=len(out_sample_data))
 
-spx_forecast = forecast_arima(in_sample_data['SPX'], order=(5,1,0))
-gs1m_forecast = forecast_arima(in_sample_data['GS1M'], order=(5,1,0))
+# Time series forecasting using SARIMA for GS1M
+gs1m_model = SARIMAX(in_sample_data['GS1M'], order=(1, 1, 1), seasonal_order=(1, 1, 1, 12))
+gs1m_results = gs1m_model.fit()
+gs1m_forecast = gs1m_results.forecast(steps=len(out_sample_data))
 
 # Plotting
 plt.figure(figsize=(12, 6))
-plt.plot(df['Date'], df['SPX'], label='Actual SPX', color='blue')
-plt.plot(df['Date'], spx_forecast, label='Forecasted SPX', color='red')
-plt.xlabel('Date')
-plt.ylabel('SPX')
-plt.title('SPX Forecasting')
-plt.legend()
-plt.grid(True)
-st.pyplot(plt)
 
-plt.figure(figsize=(12, 6))
-plt.plot(df['Date'], df['GS1M'], label='Actual GS1M', color='blue')
-plt.plot(df['Date'], gs1m_forecast, label='Forecasted GS1M', color='red')
+# Plot SPX actual and forecasted values
+plt.subplot(2, 1, 1)
+plt.plot(df['Date'], df['SPX'], label='Actual SPX')
+plt.plot(out_sample_data['Date'], spx_forecast, label='Forecasted SPX', linestyle='--')
+plt.title('SPX Time Series Forecasting')
 plt.xlabel('Date')
-plt.ylabel('GS1M')
-plt.title('GS1M Forecasting')
+plt.ylabel('SPX Value')
 plt.legend()
-plt.grid(True)
+
+# Plot GS1M actual and forecasted values
+plt.subplot(2, 1, 2)
+plt.plot(df['Date'], df['GS1M'], label='Actual GS1M')
+plt.plot(out_sample_data['Date'], gs1m_forecast, label='Forecasted GS1M', linestyle='--')
+plt.title('GS1M Time Series Forecasting')
+plt.xlabel('Date')
+plt.ylabel('GS1M Value')
+plt.legend()
+
+plt.tight_layout()
 st.pyplot(plt)
