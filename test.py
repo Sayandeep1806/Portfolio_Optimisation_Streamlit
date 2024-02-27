@@ -51,7 +51,7 @@ in_sample_end_month = st.sidebar.selectbox("Select end month for in-sample perio
 st.sidebar.write("### Select Out-of-Sample Period")
 out_sample_start_month = in_sample_end_month + 1
 max_allowed_month = out_sample_start_month + 24
-out_sample_end_month = st.sidebar.selectbox("Select end month for out-of-sample period",
+out_sample_end_month = st.sidebar.selectbox("Select end month for out-of-sample period (Please select a period of less than 2 years from start date for better prediction)",
                                              options=pd.period_range(start=out_sample_start_month, end=max_allowed_month, freq='M'))
 
 # Display selected periods
