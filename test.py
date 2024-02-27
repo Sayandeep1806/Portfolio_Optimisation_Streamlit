@@ -1,16 +1,59 @@
 import streamlit as st
 import pandas as pd
-import pystan
-from fbprophet import Prophet
+import numpy as np
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import LSTM, Dense
+from sklearn.preprocessing import MinMaxScaler
 import matplotlib.pyplot as plt
 
-# Function to perform forecasting using Prophet
-def prophet_forecast(data, forecast_period):
-    model = Prophet()
-    model.fit(data)
-    future = model.make_future_dataframe(periods=forecast_period, freq='M')
-    forecast = model.predict(future)
-    return forecast
+# Function to preprocess data and create sequences for LSTM
+def create_sequences(data, seq_length):
+    X, y = [], []
+    for i in range(len(data) - seq_length):
+        X.append(data[i:(i + seq_length)])
+        y.append(data[i + seq_length])
+    return np.array(X), np.array(y)
+
+# Function to perform forecasting using LSTM
+def lstm_forecast(train_data, test_data, seq_length, epochs):
+    # Scale the data
+    scaler = MinMaxScaler(feature_range=(0, 1))
+    train_data_scaled = scaler.fit_transform(train_data)
+    
+    # Create sequences for LSTM
+    X_train, y_train = create_sequences(train_data_scaled, seq_length)
+    
+    # Reshape data for LSTM input shape
+    X_train = np.reshape(X_train, (X_train.shape[0], X_train.shape[1], 1))
+    
+    # Build LSTM model
+    model = Sequential()
+    model.add(LSTM(units=50, return_sequences=True, input_shape=(X_train.shape[1], 1)))
+    model.add(LSTM(units=50))
+    model.add(Dense(units=1))
+    model.compile(optimizer='adam', loss='mean_squared_error')
+    
+    # Train the model
+    model.fit(X_train, y_train, epochs=epochs, batch_size=32)
+    
+    # Prepare test data
+    inputs = train_data_scaled[-seq_length:]
+    X_test = []
+    for i in range(len(test_data)):
+        X_test.append(inputs[-seq_length:])
+        inputs = np.append(inputs, test_data[i])
+    X_test = np.array(X_test)
+    
+    # Reshape data for LSTM input shape
+    X_test = np.reshape(X_test, (X_test.shape[0], X_test.shape[1], 1))
+    
+    # Perform forecasting
+    predicted_values_scaled = model.predict(X_test)
+    
+    # Inverse transform the predicted values
+    predicted_values = scaler.inverse_transform(predicted_values_scaled)
+    
+    return predicted_values
 
 # Sample data provided
 data = {
@@ -53,29 +96,21 @@ in_sample_end_month = st.sidebar.selectbox("Select end month for in-sample perio
 out_sample_end_month = st.sidebar.selectbox("Select end month for out-of-sample period",
                                             options=pd.period_range(start=pd.Period('2023-01'), end=pd.Period('2023-12'), freq='M'))
 
-# Convert periods to timestamps
-in_sample_end_month_timestamp = pd.Timestamp(in_sample_end_month.end_time)
-out_sample_end_month_timestamp = pd.Timestamp(out_sample_end_month.end_time)
-
-# Prepare the data for Prophet
-spx_data = df[['Date', 'SPX']].rename(columns={'Date': 'ds', 'SPX': 'y'})
-gs1m_data = df[['Date', 'GS1M']].rename(columns={'Date': 'ds', 'GS1M': 'y'})
-
 # Extract in-sample and out-of-sample data for SPX
-in_sample_data_spx = spx_data[spx_data['ds'] <= in_sample_end_month_timestamp]
-out_sample_data_spx = spx_data[(spx_data['ds'] > in_sample_end_month_timestamp) & (spx_data['ds'] <= out_sample_end_month_timestamp)]
+in_sample_data_spx = df['SPX'][df['Date'] <= in_sample_end_month.end_time].values
+out_sample_data_spx = df['SPX'][(df['Date'] > in_sample_end_month.end_time) & (df['Date'] <= out_sample_end_month.end_time)].values
 
 # Extract in-sample and out-of-sample data for GS1M
-in_sample_data_gs1m = gs1m_data[gs1m_data['ds'] <= in_sample_end_month_timestamp]
-out_sample_data_gs1m = gs1m_data[(gs1m_data['ds'] > in_sample_end_month_timestamp) & (gs1m_data['ds'] <= out_sample_end_month_timestamp)]
+in_sample_data_gs1m = df['GS1M'][df['Date'] <= in_sample_end_month.end_time].values
+out_sample_data_gs1m = df['GS1M'][(df['Date'] > in_sample_end_month.end_time) & (df['Date'] <= out_sample_end_month.end_time)].values
 
 # Perform forecasting for SPX
-spx_forecast = prophet_forecast(data=in_sample_data_spx, forecast_period=len(out_sample_data_spx))
+spx_predicted_values = lstm_forecast(train_data=in_sample_data_spx, test_data=out_sample_data_spx, seq_length=12, epochs=50)
 
 # Plotting the actual and forecasted values for SPX
 plt.figure(figsize=(10, 6))
-plt.plot(spx_data['ds'], spx_data['y'], label='Actual SPX')
-plt.plot(out_sample_data_spx['ds'], spx_forecast[-len(out_sample_data_spx):]['yhat'], label='Forecasted SPX')
+plt.plot(df['Date'], df['SPX'], label='Actual SPX')
+plt.plot(df['Date'].tail(len(out_sample_data_spx)), spx_predicted_values, label='Forecasted SPX')
 plt.title('SPX Forecasting')
 plt.xlabel('Date')
 plt.ylabel('SPX')
@@ -84,12 +119,12 @@ plt.xticks(rotation=45)
 st.pyplot(plt)
 
 # Perform forecasting for GS1M
-gs1m_forecast = prophet_forecast(data=in_sample_data_gs1m, forecast_period=len(out_sample_data_gs1m))
+gs1m_predicted_values = lstm_forecast(train_data=in_sample_data_gs1m, test_data=out_sample_data_gs1m, seq_length=12, epochs=50)
 
 # Plotting the actual and forecasted values for GS1M
 plt.figure(figsize=(10, 6))
-plt.plot(gs1m_data['ds'], gs1m_data['y'], label='Actual GS1M')
-plt.plot(out_sample_data_gs1m['ds'], gs1m_forecast[-len(out_sample_data_gs1m):]['yhat'], label='Forecasted GS1M')
+plt.plot(df['Date'], df['GS1M'], label='Actual GS1M')
+plt.plot(df['Date'].tail(len(out_sample_data_gs1m)), gs1m_predicted_values, label='Forecasted GS1M')
 plt.title('GS1M Forecasting')
 plt.xlabel('Date')
 plt.ylabel('GS1M')
