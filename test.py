@@ -1,6 +1,3 @@
-To utilize LSTM (Long Short-Term Memory) for time series forecasting instead of Prophet, we'll need to reshape the data appropriately and then build an LSTM model using TensorFlow. Here's how you can modify the code:
-
-```python
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -51,9 +48,7 @@ data = {
         0.5, 0.48, 0.66, 0.75, 0.73, 0.84, 0.97, 0.98, 0.99, 1, 1.09, 1.2,
         1.3, 1.38, 1.64, 1.66, 1.71, 1.81, 1.89, 1.94, 2.04, 2.17, 2.24, 2.37,
         2.4, 2.43, 2.45, 2.43, 2.4, 2.22, 2.15, 2.07, 1.99, 1.73, 1.58, 1.55,
-        1.53, 1.58, 0.37, 0.11, 0.1, 0.13,
-
- 0.11, 0.08, 0.09, 0.09, 0.09, 0.09,
+        1.53, 1.58, 0.37, 0.11, 0.1, 0.13, 0.11, 0.08, 0.09, 0.09, 0.09, 0.09,
         0.08, 0.08, 0.04, 0.02, 0.02, 0.01, 0.03, 0.05, 0.04, 0.05, 0.06, 0.07,
          0.04, 0.05, 0.18, 0.31, 0.58, 1.06, 1.85, 2.28, 2.61, 3.32, 3.87, 3.9,
          4.52, 4.64, 4.49, 4.17, 5.49, 5.2, 5.39, 5.54, 5.53, 5.57, 5.53, 5.54
@@ -150,6 +145,3 @@ plt.ylabel('GS1M')
 plt.legend()
 plt.xticks(rotation=45)
 st.pyplot(plt)
-```
-
-This code will perform time series forecasting using LSTM instead of Prophet and display the forecasted values for both SPX and GS1M in Streamlit.
