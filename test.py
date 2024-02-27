@@ -1,14 +1,8 @@
 import streamlit as st
 import pandas as pd
+from datetime import datetime, timedelta
 from statsmodels.tsa.statespace.sarimax import SARIMAX
 import matplotlib.pyplot as plt
-
-# Define a function to perform SARIMAX forecasting
-def sarimax_forecast(train_data, exog_train, exog_forecast, order, seasonal_order):
-    model = SARIMAX(train_data, exog=exog_train, order=order, seasonal_order=seasonal_order)
-    model_fit = model.fit(disp=False)
-    forecast = model_fit.forecast(steps=len(exog_forecast), exog=exog_forecast)
-    return forecast
 
 # Sample data provided
 data = {
@@ -43,16 +37,36 @@ df = pd.DataFrame(data)
 # Convert date to mm-yyyy format
 df['MonthYear'] = df['Date'].dt.strftime('%m-%Y')
 
+# Define a function to perform SARIMAX forecasting
+def sarimax_forecast(train_data, exog_train, exog_forecast, order, seasonal_order):
+    model = SARIMAX(train_data, exog=exog_train, order=order, seasonal_order=seasonal_order)
+    model_fit = model.fit(disp=False)
+    forecast = model_fit.forecast(steps=len(exog_forecast), exog=exog_forecast)
+    return forecast
+
 # Streamlit app
-st.title('Portfolio Optimization Tool')
+st.title('Portfolio Optimisation Tool')
+
+# Find min and max months
+min_month = df['Date'].dt.to_period('M').min()
+max_month = df['Date'].dt.to_period('M').max()
 
 # User input for in-sample period end month
+st.sidebar.write("### Select In-Sample Period")
 in_sample_end_month = st.sidebar.selectbox("Select end month for in-sample period",
-                                           options=pd.period_range(start=pd.Period('2016-01'), end=pd.Period('2022-12'), freq='M'))
+                                           options=pd.period_range(start=min_month+23, end=max_month, freq='M'))
 
 # User input for out-of-sample period end month
-out_sample_end_month = st.sidebar.selectbox("Select end month for out-of-sample period",
-                                            options=pd.period_range(start=pd.Period('2023-01'), end=pd.Period('2023-12'), freq='M'))
+st.sidebar.write("### Select Out-of-Sample Period")
+out_sample_start_month = in_sample_end_month + 1
+max_allowed_month = out_sample_start_month + 23
+out_sample_end_month = st.sidebar.selectbox("Select end month for out-of-sample period (Please select a period of less than 2 years from start date for better prediction)",
+                                             options=pd.period_range(start=out_sample_start_month, end=max_allowed_month, freq='M'))
+
+# Display selected periods
+st.write("## Selected Periods")
+st.write(f"In-Sample Period: {min_month} to {in_sample_end_month}")
+st.write(f"Out-of-Sample Period (Forecasting period): {out_sample_start_month} to {out_sample_end_month}")
 
 # Extract in-sample and out-of-sample data
 in_sample_data = df[df['Date'] <= in_sample_end_month.end_time]
