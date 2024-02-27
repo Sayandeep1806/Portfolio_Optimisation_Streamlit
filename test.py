@@ -1,30 +1,9 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-from sklearn.preprocessing import MinMaxScaler
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import LSTM, Dense
+from datetime import datetime
+from statsmodels.tsa.statespace.sarimax import SARIMAX
 import matplotlib.pyplot as plt
-
-# Function to prepare data for LSTM
-def prepare_lstm_data(series, n_steps):
-    X, y = [], []
-    for i in range(len(series)):
-        end_ix = i + n_steps
-        if end_ix > len(series)-1:
-            break
-        seq_x, seq_y = series[i:end_ix], series[end_ix]
-        X.append(seq_x)
-        y.append(seq_y)
-    return np.array(X), np.array(y)
-
-# Function to build LSTM model
-def build_lstm_model(n_steps, n_features):
-    model = Sequential()
-    model.add(LSTM(50, activation='relu', input_shape=(n_steps, n_features)))
-    model.add(Dense(1))
-    model.compile(optimizer='adam', loss='mse')
-    return model
 
 # Sample data provided
 data = {
@@ -71,64 +50,30 @@ out_sample_end_month = st.sidebar.selectbox("Select end month for out-of-sample 
 in_sample_end_month_timestamp = pd.Timestamp(in_sample_end_month.end_time)
 out_sample_end_month_timestamp = pd.Timestamp(out_sample_end_month.end_time)
 
-# Prepare the data for LSTM
-spx_data = df[['Date', 'SPX']].set_index('Date')
-gs1m_data = df[['Date', 'GS1M']].set_index('Date')
+# Filter data for in-sample and out-of-sample periods
+in_sample_data = df[df['Date'] <= in_sample_end_month_timestamp]
+out_sample_data = df[df['Date'] > in_sample_end_month_timestamp]
 
-# Normalize the data
-scaler_spx = MinMaxScaler()
-scaled_spx_data = scaler_spx.fit_transform(spx_data)
+# Fit SARIMAX models
+spx_model = SARIMAX(in_sample_data['SPX'], order=(1, 1, 1), seasonal_order=(1, 1, 1, 12))
+spx_results = spx_model.fit()
+gs1m_model = SARIMAX(in_sample_data['GS1M'], order=(1, 1, 1), seasonal_order=(1, 1, 1, 12))
+gs1m_results = gs1m_model.fit()
 
-scaler_gs1m = MinMaxScaler()
-scaled_gs1m_data = scaler_gs1m.fit_transform(gs1m_data)
+# Forecast
+spx_forecast = spx_results.get_forecast(steps=len(out_sample_data))
+gs1m_forecast = gs1m_results.get_forecast(steps=len(out_sample_data))
 
-# Choose the number of time steps
-n_steps = 12
-
-# Prepare the LSTM data
-X_spx, y_spx = prepare_lstm_data(scaled_spx_data, n_steps)
-X_gs1m, y_gs1m = prepare_lstm_data(scaled_gs1m_data, n_steps)
-
-# Reshape data for LSTM (samples, timesteps, features)
-n_features_spx = 1
-X_spx = X_spx.reshape((X_spx.shape[0], X_spx.shape[1], n_features_spx))
-
-n_features_gs1m = 1
-X_gs1m = X_gs1m.reshape((X_gs1m.shape[0], X_gs1m.shape[1], n_features_gs1m))
-
-# Build LSTM models
-model_spx = build_lstm_model(n_steps, n_features_spx)
-model_gs1m = build_lstm_model(n_steps, n_features_gs1m)
-
-# Fit LSTM models
-model_spx.fit(X_spx, y_spx, epochs=200, verbose=0)
-model_gs1m.fit(X_gs1m, y_gs1m, epochs=200, verbose=0)
-
-# Predictions
-forecast_period = len(df) - len(spx_data)
-forecast_spx = []
-forecast_gs1m = []
-for i in range(forecast_period):
-    x_input_spx = scaled_spx_data[-n_steps:].reshape((1, n_steps, n_features_spx))
-    x_input_gs1m = scaled_gs1m_data[-n_steps:].reshape((1, n_steps, n_features_gs1m))
-
-    yhat_spx = model_spx.predict(x_input_spx, verbose=0)[0]
-    forecast_spx.append(yhat_spx[0])
-
-    yhat_gs1m = model_gs1m.predict(x_input_gs1m, verbose=0)[0]
-    forecast_gs1m.append(yhat_gs1m[0])
-
-    scaled_spx_data = np.append(scaled_spx_data, yhat_spx.reshape(1, -1), axis=0)
-    scaled_gs1m_data = np.append(scaled_gs1m_data, yhat_gs1m.reshape(1, -1), axis=0)
-
-# Inverse scaling
-forecast_spx = scaler_spx.inverse_transform(np.array(forecast_spx).reshape(-1, 1))
-forecast_gs1m = scaler_gs1m.inverse_transform(np.array(forecast_gs1m).reshape(-1, 1))
+# Confidence intervals
+spx_conf_int = spx_forecast.conf_int()
+gs1m_conf_int = gs1m_forecast.conf_int()
 
 # Plotting
 plt.figure(figsize=(10, 6))
-plt.plot(df['Date'], df['SPX'], label='Actual SPX')
-plt.plot(pd.date_range(start=out_sample_end_month_timestamp + pd.DateOffset(months=1), periods=forecast_period, freq='M'), forecast_spx, label='Forecasted SPX')
+plt.plot(in_sample_data['Date'], in_sample_data['SPX'], label='In-Sample SPX')
+plt.plot(out_sample_data['Date'], out_sample_data['SPX'], label='Out-of-Sample SPX', color='green')
+plt.plot(out_sample_data['Date'], spx_forecast.predicted_mean, label='Forecasted SPX', color='red')
+plt.fill_between(out_sample_data['Date'], spx_conf_int.iloc[:, 0], spx_conf_int.iloc[:, 1], color='pink', alpha=0.3)
 plt.title('SPX Forecasting')
 plt.xlabel('Date')
 plt.ylabel('SPX')
@@ -137,8 +82,10 @@ plt.xticks(rotation=45)
 st.pyplot(plt)
 
 plt.figure(figsize=(10, 6))
-plt.plot(df['Date'], df['GS1M'], label='Actual GS1M')
-plt.plot(pd.date_range(start=out_sample_end_month_timestamp + pd.DateOffset(months=1), periods=forecast_period, freq='M'), forecast_gs1m, label='Forecasted GS1M')
+plt.plot(in_sample_data['Date'], in_sample_data['GS1M'], label='In-Sample GS1M')
+plt.plot(out_sample_data['Date'], out_sample_data['GS1M'], label='Out-of-Sample GS1M', color='green')
+plt.plot(out_sample_data['Date'], gs1m_forecast.predicted_mean, label='Forecasted GS1M', color='blue')
+plt.fill_between(out_sample_data['Date'], gs1m_conf_int.iloc[:, 0], gs1m_conf_int.iloc[:, 1], color='lightblue', alpha=0.3)
 plt.title('GS1M Forecasting')
 plt.xlabel('Date')
 plt.ylabel('GS1M')
