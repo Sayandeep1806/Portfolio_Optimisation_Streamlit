@@ -1,6 +1,9 @@
 import streamlit as st
 import pandas as pd
+import numpy as np
 from datetime import datetime, timedelta
+from statsmodels.tsa.arima.model import ARIMA
+import matplotlib.pyplot as plt
 
 # Sample data provided
 data = {
