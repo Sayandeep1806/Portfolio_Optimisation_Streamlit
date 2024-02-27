@@ -38,8 +38,8 @@ df = pd.DataFrame(data)
 st.title('Portfolio Optimisation Tool')
 
 # Find min and max months
-min_month = df['Date'].min()
-max_month = df['Date'].max()
+min_month = df['Date'].min().date()
+max_month = df['Date'].max().date()
 
 # User input for in-sample period end month
 st.sidebar.write("### Select In-Sample Period")
