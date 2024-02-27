@@ -34,65 +34,32 @@ data = {
 }
 df = pd.DataFrame(data)
 
+# Convert date to mm-yyyy format
+df['MonthYear'] = df['Date'].dt.strftime('%m-%Y')
+
 # Streamlit app
 st.title('Portfolio Optimisation Tool')
 
 # Find min and max months
-min_month = df['Date'].min().date()
-max_month = df['Date'].max().date()
+min_month = df['Date'].dt.to_period('M').min()
+max_month = df['Date'].dt.to_period('M').max()
 
 # User input for in-sample period end month
 st.sidebar.write("### Select In-Sample Period")
 in_sample_end_month = st.sidebar.selectbox("Select end month for in-sample period",
-                                           options=pd.date_range(start=min_month + timedelta(days=365*2), end=max_month, freq='MS').strftime('%Y-%m-%d').tolist())
+                                           options=pd.period_range(start=min_month+24, end=max_month, freq='M'))
 
 # User input for out-of-sample period end month
 st.sidebar.write("### Select Out-of-Sample Period")
-out_sample_start_month = in_sample_end_month + timedelta(days=30)
-max_allowed_month = out_sample_start_month + timedelta(days=365*2)
+out_sample_start_month = in_sample_end_month + 1
+max_allowed_month = out_sample_start_month + 24
 out_sample_end_month = st.sidebar.selectbox("Select end month for out-of-sample period (Please select a period of less than 2 years from start date for better prediction)",
-                                             options=pd.date_range(start=out_sample_start_month, end=max_allowed_month, freq='MS').strftime('%Y-%m-%d').tolist())
+                                             options=pd.period_range(start=out_sample_start_month, end=max_allowed_month, freq='M'))
 
-# Display selected periods
-st.write("## Selected Periods")
-st.write(f"In-Sample Period: {min_month.strftime('%B %Y')} to {in_sample_end_month}")
-st.write(f"Out-of-Sample Period (Forecasting period): {out_sample_start_month.strftime('%B %Y')} to {out_sample_end_month}")
+# Convert periods to timestamps in mm-yyyy format
+in_sample_end_month_timestamp = pd.Timestamp(in_sample_end_month.to_timestamp())
+out_sample_start_month_timestamp = pd.Timestamp(out_sample_start_month.to_timestamp())
+out_sample_end_month_timestamp = pd.Timestamp(out_sample_end_month.to_timestamp())
 
-# Convert date columns to datetime
-df['Date'] = pd.to_datetime(df['Date'])
 
-# Filter data for in-sample and out-of-sample periods
-in_sample_data = df[(df['Date'] >= min_month) & (df['Date'] <= in_sample_end_month)]
-out_sample_data = df[(df['Date'] >= out_sample_start_month) & (df['Date'] <= out_sample_end_month)]
 
-# Perform time series forecasting for SPX and GS1M separately
-def sarima_forecast(data, column):
-    model = SARIMAX(data[column], order=(1, 1, 1), seasonal_order=(1, 1, 1, 12))
-    model_fit = model.fit(disp=False)
-    forecast = model_fit.predict(start=out_sample_start_month, end=out_sample_end_month, dynamic=True)
-    return forecast
-
-spx_forecast = sarima_forecast(in_sample_data, 'SPX')
-gs1m_forecast = sarima_forecast(in_sample_data, 'GS1M')
-
-# Plot predicted vs actual data for SPX
-plt.figure(figsize=(10, 5))
-plt.plot(in_sample_data['Date'], in_sample_data['SPX'], label='Actual SPX')
-plt.plot(out_sample_data['Date'], spx_forecast, label='Predicted SPX')
-plt.title('SPX Forecast')
-plt.xlabel('Date')
-plt.ylabel('SPX Value')
-plt.legend()
-plt.xticks(rotation=45)
-st.pyplot()
-
-# Plot predicted vs actual data for GS1M
-plt.figure(figsize=(10, 5))
-plt.plot(in_sample_data['Date'], in_sample_data['GS1M'], label='Actual GS1M')
-plt.plot(out_sample_data['Date'], gs1m_forecast, label='Predicted GS1M')
-plt.title('GS1M Forecast')
-plt.xlabel('Date')
-plt.ylabel('GS1M Value')
-plt.legend()
-plt.xticks(rotation=45)
-st.pyplot()
