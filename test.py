@@ -61,6 +61,3 @@ st.write("## Selected Periods")
 st.write(f"In-Sample Period: {min_month} to {in_sample_end_month}")
 st.write(f"Out-of-Sample Period (Forecasting period): {out_sample_start_month} to {out_sample_end_month}")
 
-if __name__ == '__main__':
-    main()
-
