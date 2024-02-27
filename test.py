@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime, timedelta
 from statsmodels.tsa.statespace.sarimax import SARIMAX
-import matplotlib.pyplot as plt
+import plotly.graph_objects as go
 
 # Sample data provided
 data = {
@@ -83,27 +83,21 @@ gs1m_forecast = gs1m_results.get_forecast(steps=len(out_sample_data))
 spx_conf_int = spx_forecast.conf_int()
 gs1m_conf_int = gs1m_forecast.conf_int()
 
-# Plotting
-plt.figure(figsize=(10, 6))
-plt.plot(in_sample_data['Date'], in_sample_data['SPX'], label='In-Sample SPX')
-plt.plot(out_sample_data['Date'], out_sample_data['SPX'], label='Out-of-Sample SPX', color='green')
-plt.plot(out_sample_data['Date'], spx_forecast.predicted_mean, label='Forecasted SPX', color='red')
-plt.fill_between(out_sample_data['Date'], spx_conf_int.iloc[:, 0], spx_conf_int.iloc[:, 1], color='pink', alpha=0.3)
-plt.title('SPX Forecasting')
-plt.xlabel('Date')
-plt.ylabel('SPX')
-plt.legend()
-plt.xticks(rotation=45)
-st.pyplot(plt)
+# Plotting with Plotly
+fig_spx = go.Figure()
+fig_spx.add_trace(go.Scatter(x=in_sample_data['Date'], y=in_sample_data['SPX'], mode='lines', name='In-Sample SPX'))
+fig_spx.add_trace(go.Scatter(x=out_sample_data['Date'], y=out_sample_data['SPX'], mode='lines', name='Out-of-Sample SPX', line=dict(color='green')))
+fig_spx.add_trace(go.Scatter(x=out_sample_data['Date'], y=spx_forecast.predicted_mean, mode='lines', name='Forecasted SPX', line=dict(color='red')))
+fig_spx.add_trace(go.Scatter(x=out_sample_data['Date'], y=spx_conf_int.iloc[:, 0], mode='lines', fill=None, line=dict(color='pink'), name='Lower CI SPX'))
+fig_spx.add_trace(go.Scatter(x=out_sample_data['Date'], y=spx_conf_int.iloc[:, 1], mode='lines', fill='tonexty', line=dict(color='pink'), name='Upper CI SPX'))
+fig_spx.update_layout(title='SPX Forecasting', xaxis_title='Date', yaxis_title='SPX')
+st.plotly_chart(fig_spx)
 
-plt.figure(figsize=(10, 6))
-plt.plot(in_sample_data['Date'], in_sample_data['GS1M'], label='In-Sample GS1M')
-plt.plot(out_sample_data['Date'], out_sample_data['GS1M'], label='Out-of-Sample GS1M', color='green')
-plt.plot(out_sample_data['Date'], gs1m_forecast.predicted_mean, label='Forecasted GS1M', color='blue')
-plt.fill_between(out_sample_data['Date'], gs1m_conf_int.iloc[:, 0], gs1m_conf_int.iloc[:, 1], color='lightblue', alpha=0.3)
-plt.title('GS1M Forecasting')
-plt.xlabel('Date')
-plt.ylabel('GS1M')
-plt.legend()
-plt.xticks(rotation=45)
-st.pyplot(plt)
+fig_gs1m = go.Figure()
+fig_gs1m.add_trace(go.Scatter(x=in_sample_data['Date'], y=in_sample_data['GS1M'], mode='lines', name='In-Sample GS1M'))
+fig_gs1m.add_trace(go.Scatter(x=out_sample_data['Date'], y=out_sample_data['GS1M'], mode='lines', name='Out-of-Sample GS1M', line=dict(color='green')))
+fig_gs1m.add_trace(go.Scatter(x=out_sample_data['Date'], y=gs1m_forecast.predicted_mean, mode='lines', name='Forecasted GS1M', line=dict(color='blue')))
+fig_gs1m.add_trace(go.Scatter(x=out_sample_data['Date'], y=gs1m_conf_int.iloc[:, 0], mode='lines', fill=None, line=dict(color='lightblue'), name='Lower CI GS1M'))
+fig_gs1m.add_trace(go.Scatter(x=out_sample_data['Date'], y=gs1m_conf_int.iloc[:, 1], mode='lines', fill='tonexty', line=dict(color='lightblue'), name='Upper CI GS1M'))
+fig_gs1m.update_layout(title='GS1M Forecasting', xaxis_title='Date', yaxis_title='GS1M')
+st.plotly_chart(fig_gs1m)
