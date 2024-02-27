@@ -1,59 +1,33 @@
+To utilize LSTM (Long Short-Term Memory) for time series forecasting instead of Prophet, we'll need to reshape the data appropriately and then build an LSTM model using TensorFlow. Here's how you can modify the code:
+
+```python
 import streamlit as st
 import pandas as pd
 import numpy as np
+from sklearn.preprocessing import MinMaxScaler
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dense
-from sklearn.preprocessing import MinMaxScaler
 import matplotlib.pyplot as plt
 
-# Function to preprocess data and create sequences for LSTM
-def create_sequences(data, seq_length):
+# Function to prepare data for LSTM
+def prepare_lstm_data(series, n_steps):
     X, y = [], []
-    for i in range(len(data) - seq_length):
-        X.append(data[i:(i + seq_length)])
-        y.append(data[i + seq_length])
+    for i in range(len(series)):
+        end_ix = i + n_steps
+        if end_ix > len(series)-1:
+            break
+        seq_x, seq_y = series[i:end_ix], series[end_ix]
+        X.append(seq_x)
+        y.append(seq_y)
     return np.array(X), np.array(y)
 
-# Function to perform forecasting using LSTM
-def lstm_forecast(train_data, test_data, seq_length, epochs):
-    # Scale the data
-    scaler = MinMaxScaler(feature_range=(0, 1))
-    train_data_scaled = scaler.fit_transform(train_data)
-    
-    # Create sequences for LSTM
-    X_train, y_train = create_sequences(train_data_scaled, seq_length)
-    
-    # Reshape data for LSTM input shape
-    X_train = np.reshape(X_train, (X_train.shape[0], X_train.shape[1], 1))
-    
-    # Build LSTM model
+# Function to build LSTM model
+def build_lstm_model(n_steps, n_features):
     model = Sequential()
-    model.add(LSTM(units=50, return_sequences=True, input_shape=(X_train.shape[1], 1)))
-    model.add(LSTM(units=50))
-    model.add(Dense(units=1))
-    model.compile(optimizer='adam', loss='mean_squared_error')
-    
-    # Train the model
-    model.fit(X_train, y_train, epochs=epochs, batch_size=32)
-    
-    # Prepare test data
-    inputs = train_data_scaled[-seq_length:]
-    X_test = []
-    for i in range(len(test_data)):
-        X_test.append(inputs[-seq_length:])
-        inputs = np.append(inputs, test_data[i])
-    X_test = np.array(X_test)
-    
-    # Reshape data for LSTM input shape
-    X_test = np.reshape(X_test, (X_test.shape[0], X_test.shape[1], 1))
-    
-    # Perform forecasting
-    predicted_values_scaled = model.predict(X_test)
-    
-    # Inverse transform the predicted values
-    predicted_values = scaler.inverse_transform(predicted_values_scaled)
-    
-    return predicted_values
+    model.add(LSTM(50, activation='relu', input_shape=(n_steps, n_features)))
+    model.add(Dense(1))
+    model.compile(optimizer='adam', loss='mse')
+    return model
 
 # Sample data provided
 data = {
@@ -77,7 +51,9 @@ data = {
         0.5, 0.48, 0.66, 0.75, 0.73, 0.84, 0.97, 0.98, 0.99, 1, 1.09, 1.2,
         1.3, 1.38, 1.64, 1.66, 1.71, 1.81, 1.89, 1.94, 2.04, 2.17, 2.24, 2.37,
         2.4, 2.43, 2.45, 2.43, 2.4, 2.22, 2.15, 2.07, 1.99, 1.73, 1.58, 1.55,
-        1.53, 1.58, 0.37, 0.11, 0.1, 0.13, 0.11, 0.08, 0.09, 0.09, 0.09, 0.09,
+        1.53, 1.58, 0.37, 0.11, 0.1, 0.13,
+
+ 0.11, 0.08, 0.09, 0.09, 0.09, 0.09,
         0.08, 0.08, 0.04, 0.02, 0.02, 0.01, 0.03, 0.05, 0.04, 0.05, 0.06, 0.07,
          0.04, 0.05, 0.18, 0.31, 0.58, 1.06, 1.85, 2.28, 2.61, 3.32, 3.87, 3.9,
          4.52, 4.64, 4.49, 4.17, 5.49, 5.2, 5.39, 5.54, 5.53, 5.57, 5.53, 5.54
@@ -96,21 +72,68 @@ in_sample_end_month = st.sidebar.selectbox("Select end month for in-sample perio
 out_sample_end_month = st.sidebar.selectbox("Select end month for out-of-sample period",
                                             options=pd.period_range(start=pd.Period('2023-01'), end=pd.Period('2023-12'), freq='M'))
 
-# Extract in-sample and out-of-sample data for SPX
-in_sample_data_spx = df['SPX'][df['Date'] <= in_sample_end_month.end_time].values
-out_sample_data_spx = df['SPX'][(df['Date'] > in_sample_end_month.end_time) & (df['Date'] <= out_sample_end_month.end_time)].values
+# Convert periods to timestamps
+in_sample_end_month_timestamp = pd.Timestamp(in_sample_end_month.end_time)
+out_sample_end_month_timestamp = pd.Timestamp(out_sample_end_month.end_time)
 
-# Extract in-sample and out-of-sample data for GS1M
-in_sample_data_gs1m = df['GS1M'][df['Date'] <= in_sample_end_month.end_time].values
-out_sample_data_gs1m = df['GS1M'][(df['Date'] > in_sample_end_month.end_time) & (df['Date'] <= out_sample_end_month.end_time)].values
+# Prepare the data for LSTM
+spx_data = df[['Date', 'SPX']].set_index('Date')
+gs1m_data = df[['Date', 'GS1M']].set_index('Date')
 
-# Perform forecasting for SPX
-spx_predicted_values = lstm_forecast(train_data=in_sample_data_spx, test_data=out_sample_data_spx, seq_length=12, epochs=50)
+# Normalize the data
+scaler_spx = MinMaxScaler()
+scaled_spx_data = scaler_spx.fit_transform(spx_data)
 
-# Plotting the actual and forecasted values for SPX
+scaler_gs1m = MinMaxScaler()
+scaled_gs1m_data = scaler_gs1m.fit_transform(gs1m_data)
+
+# Choose the number of time steps
+n_steps = 12
+
+# Prepare the LSTM data
+X_spx, y_spx = prepare_lstm_data(scaled_spx_data, n_steps)
+X_gs1m, y_gs1m = prepare_lstm_data(scaled_gs1m_data, n_steps)
+
+# Reshape data for LSTM (samples, timesteps, features)
+n_features_spx = 1
+X_spx = X_spx.reshape((X_spx.shape[0], X_spx.shape[1], n_features_spx))
+
+n_features_gs1m = 1
+X_gs1m = X_gs1m.reshape((X_gs1m.shape[0], X_gs1m.shape[1], n_features_gs1m))
+
+# Build LSTM models
+model_spx = build_lstm_model(n_steps, n_features_spx)
+model_gs1m = build_lstm_model(n_steps, n_features_gs1m)
+
+# Fit LSTM models
+model_spx.fit(X_spx, y_spx, epochs=200, verbose=0)
+model_gs1m.fit(X_gs1m, y_gs1m, epochs=200, verbose=0)
+
+# Predictions
+forecast_period = len(df) - len(spx_data)
+forecast_spx = []
+forecast_gs1m = []
+for i in range(forecast_period):
+    x_input_spx = scaled_spx_data[-n_steps:].reshape((1, n_steps, n_features_spx))
+    x_input_gs1m = scaled_gs1m_data[-n_steps:].reshape((1, n_steps, n_features_gs1m))
+
+    yhat_spx = model_spx.predict(x_input_spx, verbose=0)[0]
+    forecast_spx.append(yhat_spx[0])
+
+    yhat_gs1m = model_gs1m.predict(x_input_gs1m, verbose=0)[0]
+    forecast_gs1m.append(yhat_gs1m[0])
+
+    scaled_spx_data = np.append(scaled_spx_data, yhat_spx.reshape(1, -1), axis=0)
+    scaled_gs1m_data = np.append(scaled_gs1m_data, yhat_gs1m.reshape(1, -1), axis=0)
+
+# Inverse scaling
+forecast_spx = scaler_spx.inverse_transform(np.array(forecast_spx).reshape(-1, 1))
+forecast_gs1m = scaler_gs1m.inverse_transform(np.array(forecast_gs1m).reshape(-1, 1))
+
+# Plotting
 plt.figure(figsize=(10, 6))
 plt.plot(df['Date'], df['SPX'], label='Actual SPX')
-plt.plot(df['Date'].tail(len(out_sample_data_spx)), spx_predicted_values, label='Forecasted SPX')
+plt.plot(pd.date_range(start=out_sample_end_month_timestamp + pd.DateOffset(months=1), periods=forecast_period, freq='M'), forecast_spx, label='Forecasted SPX')
 plt.title('SPX Forecasting')
 plt.xlabel('Date')
 plt.ylabel('SPX')
@@ -118,16 +141,15 @@ plt.legend()
 plt.xticks(rotation=45)
 st.pyplot(plt)
 
-# Perform forecasting for GS1M
-gs1m_predicted_values = lstm_forecast(train_data=in_sample_data_gs1m, test_data=out_sample_data_gs1m, seq_length=12, epochs=50)
-
-# Plotting the actual and forecasted values for GS1M
 plt.figure(figsize=(10, 6))
 plt.plot(df['Date'], df['GS1M'], label='Actual GS1M')
-plt.plot(df['Date'].tail(len(out_sample_data_gs1m)), gs1m_predicted_values, label='Forecasted GS1M')
+plt.plot(pd.date_range(start=out_sample_end_month_timestamp + pd.DateOffset(months=1), periods=forecast_period, freq='M'), forecast_gs1m, label='Forecasted GS1M')
 plt.title('GS1M Forecasting')
 plt.xlabel('Date')
 plt.ylabel('GS1M')
 plt.legend()
 plt.xticks(rotation=45)
 st.pyplot(plt)
+```
+
+This code will perform time series forecasting using LSTM instead of Prophet and display the forecasted values for both SPX and GS1M in Streamlit.
