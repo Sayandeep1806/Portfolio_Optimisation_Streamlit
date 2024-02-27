@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import pystan
 from fbprophet import Prophet
 import matplotlib.pyplot as plt
 
