@@ -1,8 +1,15 @@
 import streamlit as st
 import pandas as pd
-from datetime import datetime, timedelta
-from statsmodels.tsa.statespace.sarimax import SARIMAX
+from fbprophet import Prophet
 import matplotlib.pyplot as plt
+
+# Function to perform forecasting using Prophet
+def prophet_forecast(data, forecast_period):
+    model = Prophet()
+    model.fit(data)
+    future = model.make_future_dataframe(periods=forecast_period, freq='M')
+    forecast = model.predict(future)
+    return forecast
 
 # Sample data provided
 data = {
@@ -28,61 +35,34 @@ data = {
         2.4, 2.43, 2.45, 2.43, 2.4, 2.22, 2.15, 2.07, 1.99, 1.73, 1.58, 1.55,
         1.53, 1.58, 0.37, 0.11, 0.1, 0.13, 0.11, 0.08, 0.09, 0.09, 0.09, 0.09,
         0.08, 0.08, 0.04, 0.02, 0.02, 0.01, 0.03, 0.05, 0.04, 0.05, 0.06, 0.07,
-        0.04, 0.05, 0.18, 0.31, 0.58, 1.06, 1.85, 2.28, 2.61, 3.32, 3.87, 3.9,
-        4.52, 4.64, 4.49, 4.17, 5.49, 5.2, 5.39, 5.54, 5.53, 5.57, 5.53, 5.54
+         0.04, 0.05, 0.18, 0.31, 0.58, 1.06, 1.85, 2.28, 2.61, 3.32, 3.87, 3.9,
+         4.52, 4.64, 4.49, 4.17, 5.49, 5.2, 5.39, 5.54, 5.53, 5.57, 5.53, 5.54
     ]
 }
 df = pd.DataFrame(data)
 
-# Convert date to mm-yyyy format
-df['MonthYear'] = df['Date'].dt.strftime('%m-%Y')
-
-# Define a function to perform SARIMAX forecasting
-def sarimax_forecast(train_data, exog_train, exog_forecast, order, seasonal_order):
-    model = SARIMAX(train_data, exog=exog_train, order=order, seasonal_order=seasonal_order)
-    model_fit = model.fit(disp=False)
-    forecast = model_fit.forecast(steps=len(exog_forecast), exog=exog_forecast)
-    return forecast
-
 # Streamlit app
-st.title('Portfolio Optimisation Tool')
-
-# Find min and max months
-min_month = df['Date'].dt.to_period('M').min()
-max_month = df['Date'].dt.to_period('M').max()
+st.title('Portfolio Optimization Tool')
 
 # User input for in-sample period end month
-st.sidebar.write("### Select In-Sample Period")
 in_sample_end_month = st.sidebar.selectbox("Select end month for in-sample period",
-                                           options=pd.period_range(start=min_month+23, end=max_month, freq='M'))
+                                           options=pd.period_range(start=pd.Period('2016-01'), end=pd.Period('2022-12'), freq='M'))
 
 # User input for out-of-sample period end month
-st.sidebar.write("### Select Out-of-Sample Period")
-out_sample_start_month = in_sample_end_month + 1
-max_allowed_month = out_sample_start_month + 23
-out_sample_end_month = st.sidebar.selectbox("Select end month for out-of-sample period (Please select a period of less than 2 years from start date for better prediction)",
-                                             options=pd.period_range(start=out_sample_start_month, end=max_allowed_month, freq='M'))
+out_sample_end_month = st.sidebar.selectbox("Select end month for out-of-sample period",
+                                            options=pd.period_range(start=pd.Period('2023-01'), end=pd.Period('2023-12'), freq='M'))
 
-# Display selected periods
-st.write("## Selected Periods")
-st.write(f"In-Sample Period: {min_month} to {in_sample_end_month}")
-st.write(f"Out-of-Sample Period (Forecasting period): {out_sample_start_month} to {out_sample_end_month}")
+# Extract in-sample and out-of-sample data for SPX
+in_sample_data_spx = df[['Date', 'SPX']][df['Date'] <= in_sample_end_month.end_time]
+out_sample_data_spx = df[['Date', 'SPX']][(df['Date'] > in_sample_end_month.end_time) & (df['Date'] <= out_sample_end_month.end_time)]
 
-# Extract in-sample and out-of-sample data
-in_sample_data = df[df['Date'] <= in_sample_end_month.end_time]
-out_sample_data = df[(df['Date'] > in_sample_end_month.end_time) & (df['Date'] <= out_sample_end_month.end_time)]
+# Perform forecasting for SPX
+spx_forecast = prophet_forecast(data=in_sample_data_spx, forecast_period=len(out_sample_data_spx))
 
-# Perform SARIMAX forecasting for SPX
-spx_forecast = sarimax_forecast(train_data=in_sample_data['SPX'],
-                                 exog_train=in_sample_data['GS1M'],
-                                 exog_forecast=out_sample_data['GS1M'],
-                                 order=(1, 1, 1),
-                                 seasonal_order=(1, 1, 1, 12))
-
-# Plotting the actual and forecasted values
+# Plotting the actual and forecasted values for SPX
 plt.figure(figsize=(10, 6))
 plt.plot(df['Date'], df['SPX'], label='Actual SPX')
-plt.plot(out_sample_data['Date'], spx_forecast, label='Forecasted SPX')
+plt.plot(out_sample_data_spx['Date'], spx_forecast[-len(out_sample_data_spx):]['yhat'], label='Forecasted SPX')
 plt.title('SPX Forecasting')
 plt.xlabel('Date')
 plt.ylabel('SPX')
@@ -90,17 +70,17 @@ plt.legend()
 plt.xticks(rotation=45)
 st.pyplot(plt)
 
-# Perform SARIMAX forecasting for GS1M
-gs1m_forecast = sarimax_forecast(train_data=in_sample_data['GS1M'],
-                                  exog_train=in_sample_data['SPX'],
-                                  exog_forecast=out_sample_data['SPX'],
-                                  order=(1, 1, 1),
-                                  seasonal_order=(1, 1, 1, 12))
+# Extract in-sample and out-of-sample data for GS1M
+in_sample_data_gs1m = df[['Date', 'GS1M']][df['Date'] <= in_sample_end_month.end_time]
+out_sample_data_gs1m = df[['Date', 'GS1M']][(df['Date'] > in_sample_end_month.end_time) & (df['Date'] <= out_sample_end_month.end_time)]
 
-# Plotting the actual and forecasted values
+# Perform forecasting for GS1M
+gs1m_forecast = prophet_forecast(data=in_sample_data_gs1m, forecast_period=len(out_sample_data_gs1m))
+
+# Plotting the actual and forecasted values for GS1M
 plt.figure(figsize=(10, 6))
 plt.plot(df['Date'], df['GS1M'], label='Actual GS1M')
-plt.plot(out_sample_data['Date'], gs1m_forecast, label='Forecasted GS1M')
+plt.plot(out_sample_data_gs1m['Date'], gs1m_forecast[-len(out_sample_data_gs1m):]['yhat'], label='Forecasted GS1M')
 plt.title('GS1M Forecasting')
 plt.xlabel('Date')
 plt.ylabel('GS1M')
