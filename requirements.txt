@@ -4,7 +4,6 @@ numpy
 datetime
 matplotlib
 statsmodels
-pystan
-altair
-fbprophet
+tensorflow
+sklearn
 plotly
