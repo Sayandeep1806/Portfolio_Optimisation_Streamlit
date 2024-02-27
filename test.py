@@ -1,53 +1,49 @@
 import streamlit as st
 import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-from statsmodels.tsa.api import SimpleExpSmoothing
+from datetime import datetime, timedelta
 
-def clean_data(data):
-    data_1 = data[['Date','SPX','GS1M']]
-    portfolio_data = data_1.dropna(how='all').reset_index(drop='index')
-    portfolio_data['Date'] = pd.to_datetime(portfolio_data['Date'])
-    portfolio_data['Date'] = portfolio_data['Date'].dt.strftime('%d-%m-%Y')
-    return portfolio_data
+# Sample data provided
+data = "data.csv"
+data_read = pd.read_csv(data)
+data_1 = data_read[['Date','SPX','GS1M']]
+data_2 = data_1.dropna(how='all').reset_index(drop='index')
+df = data_2
 
-    # Load data
-    df1 = pd.read_csv("data.csv")  # Change "data.csv" to the actual file name
-    df = clean_data(df1)
-
-
-# Function to forecast SPX excess returns
-def forecast_excess_returns(df, insample_size):
-    # Compute excess returns
-    df['Excess_Returns'] = df['SPX'].pct_change() * 100
-    df = df.dropna()
-
-    # Perform forecasting
-    model = SimpleExpSmoothing(df['Excess_Returns'].iloc[:insample_size])
-    fit_model = model.fit()
-    forecast = fit_model.forecast(len(df) - insample_size)
-
-    return forecast
+# Convert date to mm-yyyy format
+df['MonthYear'] = df['Date'].dt.strftime('%m-%Y')
 
 # Streamlit app
-def main():
-    st.title('SPX Excess Returns Forecasting')
+st.title('Date Selection App')
 
-    # Sidebar - Select insample size
-    insample_size = st.sidebar.slider('Select insample size', min_value=10, max_value=len(df)-1, value=50)
+# Find min and max months
+min_month = df['Date'].dt.to_period('M').min()
+max_month = df['Date'].dt.to_period('M').max()
 
-    # Forecast and plot
-    forecast = forecast_excess_returns(df, insample_size)
-    actual = df['Excess_Returns'].values[insample_size:]
+# User input for in-sample period end month
+st.sidebar.write("### Select In-Sample Period")
+in_sample_end_month = st.sidebar.selectbox("Select end month for in-sample period",
+                                           options=pd.period_range(start=min_month, end=max_month, freq='M'))
 
-    plt.figure(figsize=(10, 6))
-    plt.plot(actual, label='Actual')
-    plt.plot(forecast, label='Forecast')
-    plt.title('SPX Excess Returns Forecast vs Actual')
-    plt.xlabel('Time')
-    plt.ylabel('Excess Returns (%)')
-    plt.legend()
-    st.pyplot()
+# User input for out-of-sample period end month
+st.sidebar.write("### Select Out-of-Sample Period")
+out_sample_start_month = in_sample_end_month + 1
+max_allowed_month = out_sample_start_month + 24
+out_sample_end_month = st.sidebar.selectbox("Select end month for out-of-sample period",
+                                             options=pd.period_range(start=out_sample_start_month, end=max_allowed_month, freq='M'))
 
-if __name__ == '__main__':
-    main()
+# Display selected periods
+st.write("## Selected Periods")
+st.write(f"In-Sample Period: {min_month} to {in_sample_end_month}")
+st.write(f"Out-of-Sample Period: {out_sample_start_month} to {out_sample_end_month}")
+
+# Display data for selected periods
+in_sample_data = df[df['Date'].dt.to_period('M') <= in_sample_end_month.end_time]
+out_sample_data = df[(df['Date'].dt.to_period('M') >= out_sample_start_month.start_time) &
+                     (df['Date'].dt.to_period('M') <= out_sample_end_month.end_time)]
+
+st.write("## Data for Selected Periods")
+st.write("### In-Sample Period")
+st.write(in_sample_data)
+
+st.write("### Out-of-Sample Period")
+st.write(out_sample_data)
