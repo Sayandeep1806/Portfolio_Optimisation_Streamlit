@@ -53,17 +53,29 @@ in_sample_end_month = st.sidebar.selectbox("Select end month for in-sample perio
 out_sample_end_month = st.sidebar.selectbox("Select end month for out-of-sample period",
                                             options=pd.period_range(start=pd.Period('2023-01'), end=pd.Period('2023-12'), freq='M'))
 
+# Convert periods to timestamps
+in_sample_end_month_timestamp = pd.Timestamp(in_sample_end_month.end_time)
+out_sample_end_month_timestamp = pd.Timestamp(out_sample_end_month.end_time)
+
+# Prepare the data for Prophet
+spx_data = df[['Date', 'SPX']].rename(columns={'Date': 'ds', 'SPX': 'y'})
+gs1m_data = df[['Date', 'GS1M']].rename(columns={'Date': 'ds', 'GS1M': 'y'})
+
 # Extract in-sample and out-of-sample data for SPX
-in_sample_data_spx = df[['Date', 'SPX']][df['Date'] <= in_sample_end_month.end_time]
-out_sample_data_spx = df[['Date', 'SPX']][(df['Date'] > in_sample_end_month.end_time) & (df['Date'] <= out_sample_end_month.end_time)]
+in_sample_data_spx = spx_data[spx_data['ds'] <= in_sample_end_month_timestamp]
+out_sample_data_spx = spx_data[(spx_data['ds'] > in_sample_end_month_timestamp) & (spx_data['ds'] <= out_sample_end_month_timestamp)]
+
+# Extract in-sample and out-of-sample data for GS1M
+in_sample_data_gs1m = gs1m_data[gs1m_data['ds'] <= in_sample_end_month_timestamp]
+out_sample_data_gs1m = gs1m_data[(gs1m_data['ds'] > in_sample_end_month_timestamp) & (gs1m_data['ds'] <= out_sample_end_month_timestamp)]
 
 # Perform forecasting for SPX
 spx_forecast = prophet_forecast(data=in_sample_data_spx, forecast_period=len(out_sample_data_spx))
 
 # Plotting the actual and forecasted values for SPX
 plt.figure(figsize=(10, 6))
-plt.plot(df['Date'], df['SPX'], label='Actual SPX')
-plt.plot(out_sample_data_spx['Date'], spx_forecast[-len(out_sample_data_spx):]['yhat'], label='Forecasted SPX')
+plt.plot(spx_data['ds'], spx_data['y'], label='Actual SPX')
+plt.plot(out_sample_data_spx['ds'], spx_forecast[-len(out_sample_data_spx):]['yhat'], label='Forecasted SPX')
 plt.title('SPX Forecasting')
 plt.xlabel('Date')
 plt.ylabel('SPX')
@@ -71,17 +83,13 @@ plt.legend()
 plt.xticks(rotation=45)
 st.pyplot(plt)
 
-# Extract in-sample and out-of-sample data for GS1M
-in_sample_data_gs1m = df[['Date', 'GS1M']][df['Date'] <= in_sample_end_month.end_time]
-out_sample_data_gs1m = df[['Date', 'GS1M']][(df['Date'] > in_sample_end_month.end_time) & (df['Date'] <= out_sample_end_month.end_time)]
-
 # Perform forecasting for GS1M
 gs1m_forecast = prophet_forecast(data=in_sample_data_gs1m, forecast_period=len(out_sample_data_gs1m))
 
 # Plotting the actual and forecasted values for GS1M
 plt.figure(figsize=(10, 6))
-plt.plot(df['Date'], df['GS1M'], label='Actual GS1M')
-plt.plot(out_sample_data_gs1m['Date'], gs1m_forecast[-len(out_sample_data_gs1m):]['yhat'], label='Forecasted GS1M')
+plt.plot(gs1m_data['ds'], gs1m_data['y'], label='Actual GS1M')
+plt.plot(out_sample_data_gs1m['ds'], gs1m_forecast[-len(out_sample_data_gs1m):]['yhat'], label='Forecasted GS1M')
 plt.title('GS1M Forecasting')
 plt.xlabel('Date')
 plt.ylabel('GS1M')
