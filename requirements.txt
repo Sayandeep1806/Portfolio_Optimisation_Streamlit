@@ -4,4 +4,5 @@ numpy
 datetime
 matplotlib
 statsmodels
+pystan
 fbprophet
