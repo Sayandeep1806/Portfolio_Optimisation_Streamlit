@@ -36,7 +36,7 @@ df = pd.DataFrame(data)
 df['MonthYear'] = df['Date'].dt.strftime('%m-%Y')
 
 # Streamlit app
-st.title('Date Selection App')
+st.title('Portfolio Optimisation Tool')
 
 # Find min and max months
 min_month = df['Date'].dt.to_period('M').min()
@@ -57,7 +57,7 @@ out_sample_end_month = st.sidebar.selectbox("Select end month for out-of-sample 
 # Display selected periods
 st.write("## Selected Periods")
 st.write(f"In-Sample Period: {min_month} to {in_sample_end_month}")
-st.write(f"Out-of-Sample Period: {out_sample_start_month} to {out_sample_end_month}")
+st.write(f"Out-of-Sample Period (Forecasting period): {out_sample_start_month} to {out_sample_end_month}")
 
 # Display data for selected periods
 in_sample_data = df[df['Date'].dt.to_period('M') <= in_sample_end_month.end_time]
