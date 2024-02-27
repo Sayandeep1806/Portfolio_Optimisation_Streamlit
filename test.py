@@ -98,4 +98,6 @@ plt.ylabel('GS1M Value')
 plt.legend()
 
 plt.tight_layout()
+
+# Display the plot using streamlit
 st.pyplot(plt)
