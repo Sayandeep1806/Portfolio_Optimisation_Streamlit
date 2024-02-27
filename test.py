@@ -56,8 +56,31 @@ max_allowed_month = out_sample_start_month + 24
 out_sample_end_month = st.sidebar.selectbox("Select end month for out-of-sample period (Please select a period of less than 2 years from start date for better prediction)",
                                              options=pd.period_range(start=out_sample_start_month, end=max_allowed_month, freq='M'))
 
-# Display selected periods
-st.write("## Selected Periods")
-st.write(f"In-Sample Period: {min_month} to {in_sample_end_month}")
-st.write(f"Out-of-Sample Period (Forecasting period): {out_sample_start_month} to {out_sample_end_month}")
+# Forecasting
+spx_model = SARIMAX(df.loc[:in_sample_end_month, 'SPX'], order=(1, 1, 1), seasonal_order=(1, 1, 1, 12))
+spx_results = spx_model.fit()
+spx_forecast = spx_results.predict(start=out_sample_start_month, end=out_sample_end_month, dynamic=True)
 
+gs1m_model = SARIMAX(df.loc[:in_sample_end_month, 'GS1M'], order=(1, 1, 1), seasonal_order=(1, 1, 1, 12))
+gs1m_results = gs1m_model.fit()
+gs1m_forecast = gs1m_results.predict(start=out_sample_start_month, end=out_sample_end_month, dynamic=True)
+
+# Plotting
+plt.figure(figsize=(10, 6))
+
+# SPX Forecast vs Actual
+plt.subplot(2, 1, 1)
+plt.plot(df['Date'], df['SPX'], label='Actual')
+plt.plot(spx_forecast.index, spx_forecast, label='Forecast', linestyle='--')
+plt.title('SPX Forecast vs Actual')
+plt.legend()
+
+# GS1M Forecast vs Actual
+plt.subplot(2, 1, 2)
+plt.plot(df['Date'], df['GS1M'], label='Actual')
+plt.plot(gs1m_forecast.index, gs1m_forecast, label='Forecast', linestyle='--')
+plt.title('GS1M Forecast vs Actual')
+plt.legend()
+
+plt.tight_layout()
+st.pyplot(plt)
