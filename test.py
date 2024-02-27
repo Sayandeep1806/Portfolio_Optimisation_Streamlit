@@ -61,43 +61,5 @@ st.write("## Selected Periods")
 st.write(f"In-Sample Period: {min_month} to {in_sample_end_month}")
 st.write(f"Out-of-Sample Period (Forecasting period): {out_sample_start_month} to {out_sample_end_month}")
 
-# Display data for selected periods
-in_sample_data = df[df['Date'].dt.to_period('M') <= in_sample_end_month.end_time]
-out_sample_data = df[(df['Date'].dt.to_period('M') >= out_sample_start_month.start_time) &
-                     (df['Date'].dt.to_period('M') <= out_sample_end_month.end_time)]
 
-# Time series forecasting using SARIMA for SPX
-spx_model = SARIMAX(in_sample_data['SPX'], order=(1, 1, 1), seasonal_order=(1, 1, 1, 12))
-spx_results = spx_model.fit()
-spx_forecast = spx_results.forecast(steps=len(out_sample_data))
 
-# Time series forecasting using SARIMA for GS1M
-gs1m_model = SARIMAX(in_sample_data['GS1M'], order=(1, 1, 1), seasonal_order=(1, 1, 1, 12))
-gs1m_results = gs1m_model.fit()
-gs1m_forecast = gs1m_results.forecast(steps=len(out_sample_data))
-
-# Plotting
-plt.figure(figsize=(12, 6))
-
-# Plot SPX actual and forecasted values
-plt.subplot(2, 1, 1)
-plt.plot(df['Date'], df['SPX'], label='Actual SPX')
-plt.plot(out_sample_data['Date'], spx_forecast, label='Forecasted SPX', linestyle='--')
-plt.title('SPX Time Series Forecasting')
-plt.xlabel('Date')
-plt.ylabel('SPX Value')
-plt.legend()
-
-# Plot GS1M actual and forecasted values
-plt.subplot(2, 1, 2)
-plt.plot(df['Date'], df['GS1M'], label='Actual GS1M')
-plt.plot(out_sample_data['Date'], gs1m_forecast, label='Forecasted GS1M', linestyle='--')
-plt.title('GS1M Time Series Forecasting')
-plt.xlabel('Date')
-plt.ylabel('GS1M Value')
-plt.legend()
-
-plt.tight_layout()
-
-# Display the plot using streamlit
-st.pyplot(plt)
