@@ -34,53 +34,26 @@ data = {
 }
 df = pd.DataFrame(data)
 
-# Convert date to mm-yyyy format
-df['MonthYear'] = df['Date'].dt.strftime('%m-%Y')
-
 # Streamlit app
 st.title('Portfolio Optimisation Tool')
 
 # Find min and max months
-min_month = df['Date'].dt.to_period('M').min()
-max_month = df['Date'].dt.to_period('M').max()
+min_month = df['Date'].min()
+max_month = df['Date'].max()
 
 # User input for in-sample period end month
 st.sidebar.write("### Select In-Sample Period")
 in_sample_end_month = st.sidebar.selectbox("Select end month for in-sample period",
-                                           options=pd.period_range(start=min_month+24, end=max_month, freq='M'))
+                                           options=pd.date_range(start=min_month + timedelta(days=365*2), end=max_month, freq='MS'))
 
 # User input for out-of-sample period end month
 st.sidebar.write("### Select Out-of-Sample Period")
-out_sample_start_month = in_sample_end_month + 1
-max_allowed_month = out_sample_start_month + 24
+out_sample_start_month = in_sample_end_month + timedelta(days=30)
+max_allowed_month = out_sample_start_month + timedelta(days=365*2)
 out_sample_end_month = st.sidebar.selectbox("Select end month for out-of-sample period (Please select a period of less than 2 years from start date for better prediction)",
-                                             options=pd.period_range(start=out_sample_start_month, end=max_allowed_month, freq='M'))
+                                             options=pd.date_range(start=out_sample_start_month, end=max_allowed_month, freq='MS'))
 
-# Forecasting
-spx_model = SARIMAX(df.loc[:in_sample_end_month, 'SPX'], order=(1, 1, 1), seasonal_order=(1, 1, 1, 12))
-spx_results = spx_model.fit()
-spx_forecast = spx_results.predict(start=out_sample_start_month, end=out_sample_end_month, dynamic=True)
-
-gs1m_model = SARIMAX(df.loc[:in_sample_end_month, 'GS1M'], order=(1, 1, 1), seasonal_order=(1, 1, 1, 12))
-gs1m_results = gs1m_model.fit()
-gs1m_forecast = gs1m_results.predict(start=out_sample_start_month, end=out_sample_end_month, dynamic=True)
-
-# Plotting
-plt.figure(figsize=(10, 6))
-
-# SPX Forecast vs Actual
-plt.subplot(2, 1, 1)
-plt.plot(df['Date'], df['SPX'], label='Actual')
-plt.plot(spx_forecast.index, spx_forecast, label='Forecast', linestyle='--')
-plt.title('SPX Forecast vs Actual')
-plt.legend()
-
-# GS1M Forecast vs Actual
-plt.subplot(2, 1, 2)
-plt.plot(df['Date'], df['GS1M'], label='Actual')
-plt.plot(gs1m_forecast.index, gs1m_forecast, label='Forecast', linestyle='--')
-plt.title('GS1M Forecast vs Actual')
-plt.legend()
-
-plt.tight_layout()
-st.pyplot(plt)
+# Display selected periods
+st.write("## Selected Periods")
+st.write(f"In-Sample Period: {min_month.strftime('%B %Y')} to {in_sample_end_month.strftime('%B %Y')}")
+st.write(f"Out-of-Sample Period (Forecasting period): {out_sample_start_month.strftime('%B %Y')} to {out_sample_end_month.strftime('%B %Y')}")
