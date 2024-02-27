@@ -45,7 +45,7 @@ max_month = df['Date'].dt.to_period('M').max()
 # User input for in-sample period end month
 st.sidebar.write("### Select In-Sample Period")
 in_sample_end_month = st.sidebar.selectbox("Select end month for in-sample period",
-                                           options=pd.period_range(start=min_month, end=max_month, freq='M'))
+                                           options=pd.period_range(start=min_month+24, end=max_month, freq='M'))
 
 # User input for out-of-sample period end month
 st.sidebar.write("### Select Out-of-Sample Period")
