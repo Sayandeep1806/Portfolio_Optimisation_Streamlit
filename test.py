@@ -105,8 +105,8 @@ forecast_df = pd.DataFrame({
     'Forecasted_SPX': forecast_values
 })
 
-forecast_df['Upper_Bound'] = forecast_df['Forecasted_SPX'] + 50  # Adjust upper bound as needed
-forecast_df['Lower_Bound'] = forecast_df['Forecasted_SPX'] - 50  # Adjust lower bound as needed
+forecast_df['Upper_Bound'] = forecast_df['Forecasted_SPX'] + 100  # Adjust upper bound as needed
+forecast_df['Lower_Bound'] = forecast_df['Forecasted_SPX'] - 100  # Adjust lower bound as needed
 
 # Plotting the results
 fig = px.line(df, x='Date', y='SPX', title='Actual SPX Values vs Forecasted SPX Values with Bounds')
