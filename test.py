@@ -47,58 +47,20 @@ max_month = df['Date'].dt.to_period('M').max()
 
 # User input for in-sample period end month
 st.sidebar.write("### Select In-Sample Period")
-in_sample_end_month = st.sidebar.selectbox("Select end month for in-sample period",
-                                           options=pd.period_range(start=min_month+23, end=max_month, freq='M'))
+st.sidebar.write(f"The data is available from {min_month} to {max_month}. Please allow atleast 2 years of data for training the model.")
+in_sample_start_month = st.sidebar.selectbox("Select start month for in-sample period",
+                                           options=pd.period_range(start=min_month, end=max_month-24, freq='M'))
+in_sample_end_month = st.sidebar.selectbox("Select end month for initial in-sample period",
+                                           options=pd.period_range(start=in_sample_start_month+23, end=max_month, freq='M'))
 
 # User input for out-of-sample period end month
 st.sidebar.write("### Select Out-of-Sample Period")
 out_sample_start_month = in_sample_end_month + 1
-max_allowed_month = out_sample_start_month + 5
-out_sample_end_month = st.sidebar.selectbox("Select end month for out-of-sample period (Please select a period of less than 6 months from start date for better prediction)",
+max_allowed_month = max_month + 1
+out_sample_end_month = st.sidebar.selectbox("Select end month for forecasting period",
                                              options=pd.period_range(start=out_sample_start_month, end=max_allowed_month, freq='M'))
 
 # Display selected periods
 st.write("## Selected Periods")
-st.write(f"In-Sample Period: {min_month} to {in_sample_end_month}")
-st.write(f"Out-of-Sample Period (Forecasting period): {out_sample_start_month} to {out_sample_end_month}")
-
-# Convert periods to timestamps
-in_sample_end_month_timestamp = pd.Timestamp(in_sample_end_month.end_time)
-out_sample_end_month_timestamp = pd.Timestamp(out_sample_end_month.end_time)
-
-# Filter data for in-sample and out-of-sample periods
-in_sample_data = df[df['Date'] <= in_sample_end_month_timestamp]
-out_sample_data = df[(df['Date'] > in_sample_end_month_timestamp) & (df['Date'] <= out_sample_end_month_timestamp)]
-
-# Fit SARIMAX models
-spx_model = SARIMAX(in_sample_data['SPX'], order=(1, 1, 1), seasonal_order=(1, 1, 1, 12))
-spx_results = spx_model.fit()
-gs1m_model = SARIMAX(in_sample_data['GS1M'], order=(1, 1, 1), seasonal_order=(1, 1, 1, 12))
-gs1m_results = gs1m_model.fit()
-
-# Forecast
-spx_forecast = spx_results.get_forecast(steps=len(out_sample_data))
-gs1m_forecast = gs1m_results.get_forecast(steps=len(out_sample_data))
-
-# Confidence intervals
-spx_conf_int = spx_forecast.conf_int()
-gs1m_conf_int = gs1m_forecast.conf_int()
-
-# Plotting with Plotly Express
-fig_spx = px.line()
-fig_spx.add_scatter(x=in_sample_data['Date'], y=in_sample_data['SPX'], mode='lines', name='In-Sample SPX')
-fig_spx.add_scatter(x=out_sample_data['Date'], y=out_sample_data['SPX'], mode='lines', name='Out-of-Sample SPX', line=dict(color='green'))
-fig_spx.add_scatter(x=out_sample_data['Date'], y=spx_forecast.predicted_mean, mode='lines', name='Forecasted SPX', line=dict(color='red'))
-fig_spx.add_scatter(x=out_sample_data['Date'], y=spx_conf_int.iloc[:, 0], mode='lines', fill=None, line=dict(color='pink'), name='Lower CI SPX')
-fig_spx.add_scatter(x=out_sample_data['Date'], y=spx_conf_int.iloc[:, 1], mode='lines', fill='tonexty', line=dict(color='pink'), name='Upper CI SPX')
-fig_spx.update_layout(title='SPX Forecasting', xaxis_title='Period', yaxis_title='SPX')
-st.plotly_chart(fig_spx)
-
-fig_gs1m = px.line()
-fig_gs1m.add_scatter(x=in_sample_data['Date'], y=in_sample_data['GS1M'], mode='lines', name='In-Sample GS1M')
-fig_gs1m.add_scatter(x=out_sample_data['Date'], y=out_sample_data['GS1M'], mode='lines', name='Out-of-Sample GS1M', line=dict(color='green'))
-fig_gs1m.add_scatter(x=out_sample_data['Date'], y=gs1m_forecast.predicted_mean, mode='lines', name='Forecasted GS1M', line=dict(color='blue'))
-fig_gs1m.add_scatter(x=out_sample_data['Date'], y=gs1m_conf_int.iloc[:, 0], mode='lines', fill=None, line=dict(color='lightblue'), name='Lower CI GS1M')
-fig_gs1m.add_scatter(x=out_sample_data['Date'], y=gs1m_conf_int.iloc[:, 1], mode='lines', fill='tonexty', line=dict(color='lightblue'), name='Upper CI GS1M')
-fig_gs1m.update_layout(title='GS1M Forecasting', xaxis_title='Period', yaxis_title='GS1M')
-st.plotly_chart(fig_gs1m)
+st.write(f"In-Sample Period: {in_sample_start_month} to {in_sample_end_month}")
+st.write(f"Out-of-Sample Period (Forecasting period): Till {out_sample_end_month}")
