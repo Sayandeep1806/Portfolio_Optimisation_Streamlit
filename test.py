@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 from statsmodels.tsa.statespace.sarimax import SARIMAX
-import matplotlib
 import plotly.express as px
 import plotly.graph_objects as go
 
@@ -110,7 +109,9 @@ forecast_df['Upper_Bound'] = forecast_df['Forecasted_SPX'] + 50  # Adjust upper 
 forecast_df['Lower_Bound'] = forecast_df['Forecasted_SPX'] - 50  # Adjust lower bound as needed
 
 # Plotting the results
-fig = px.line(df[df['Date'] <= out_sample_end_month], x='Date', y='SPX', title='Actual SPX Values vs Forecasted SPX Values with Bounds')
+fig = px.line(df, x='Date', y='SPX', title='Actual SPX Values vs Forecasted SPX Values with Bounds')
+
+# Add forecasted values and bounds as shaded area
 fig.add_scatter(x=forecast_df['Date'], y=forecast_df['Forecasted_SPX'], mode='lines', line=dict(color='red'), name='Forecasted SPX')
 fig.add_trace(go.Scatter(
     x=forecast_df['Date'].tolist() + forecast_df['Date'].tolist()[::-1],
