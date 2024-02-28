@@ -3,7 +3,7 @@ import pandas as pd
 from datetime import datetime, timedelta
 from statsmodels.tsa.statespace.sarimax import SARIMAX
 import matplotlib
-import plotly.express as px
+import plotly.graph_objects as go
 
 # Sample data provided
 data = {
@@ -100,6 +100,28 @@ forecast_values = [forecast[1] for forecast in forecasts]
 actual_dates = df['Date']
 actual_values = df['SPX']
 
-fig = px.line(x=actual_dates, y=actual_values, labels={'x':'Date', 'y':'SPX'}, title='Actual SPX Values vs Forecasted SPX Values')
-fig.add_scatter(x=forecast_dates, y=forecast_values, mode='lines', name='Forecasted SPX Values', line=dict(color='red'))
+fig = go.Figure()
+
+# Plot actual SPX values
+fig.add_trace(go.Scatter(x=actual_dates, y=actual_values, mode='lines', name='Actual SPX Values'))
+
+# Plot forecasted SPX values with upper and lower bounds
+forecast_upper_bounds = []
+forecast_lower_bounds = []
+for i in range(len(forecast_dates)):
+    upper_bound = forecast_values[i] + 50  # Adjust upper bound as needed
+    lower_bound = forecast_values[i] - 50  # Adjust lower bound as needed
+    forecast_upper_bounds.append(upper_bound)
+    forecast_lower_bounds.append(lower_bound)
+
+fig.add_trace(go.Scatter(x=forecast_dates, y=forecast_values, mode='lines', name='Forecasted SPX Values'))
+fig.add_trace(go.Scatter(x=forecast_dates, y=forecast_upper_bounds, fill='tonexty', mode='lines', name='Upper Bound'))
+fig.add_trace(go.Scatter(x=forecast_dates, y=forecast_lower_bounds, fill='tonexty', mode='lines', name='Lower Bound'))
+
+# Set plot layout
+fig.update_layout(title='Actual SPX Values vs Forecasted SPX Values with Bounds',
+                  xaxis_title='Date',
+                  yaxis_title='SPX',
+                  xaxis=dict(range=[min(actual_dates), max(forecast_dates)]))  # Adjust x-axis range
+
 st.plotly_chart(fig)
