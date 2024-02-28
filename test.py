@@ -91,7 +91,7 @@ fig_spx.add_scatter(x=out_sample_data['Date'], y=out_sample_data['SPX'], mode='l
 fig_spx.add_scatter(x=out_sample_data['Date'], y=spx_forecast.predicted_mean, mode='lines', name='Forecasted SPX', line=dict(color='red'))
 fig_spx.add_scatter(x=out_sample_data['Date'], y=spx_conf_int.iloc[:, 0], mode='lines', fill=None, line=dict(color='pink'), name='Lower CI SPX')
 fig_spx.add_scatter(x=out_sample_data['Date'], y=spx_conf_int.iloc[:, 1], mode='lines', fill='tonexty', line=dict(color='pink'), name='Upper CI SPX')
-fig_spx.update_layout(title='SPX Forecasting', xaxis_title='Date', yaxis_title='SPX')
+fig_spx.update_layout(title='SPX Forecasting', xaxis_title='Period', yaxis_title='SPX')
 st.plotly_chart(fig_spx)
 
 fig_gs1m = px.line()
@@ -100,5 +100,5 @@ fig_gs1m.add_scatter(x=out_sample_data['Date'], y=out_sample_data['GS1M'], mode=
 fig_gs1m.add_scatter(x=out_sample_data['Date'], y=gs1m_forecast.predicted_mean, mode='lines', name='Forecasted GS1M', line=dict(color='blue'))
 fig_gs1m.add_scatter(x=out_sample_data['Date'], y=gs1m_conf_int.iloc[:, 0], mode='lines', fill=None, line=dict(color='lightblue'), name='Lower CI GS1M')
 fig_gs1m.add_scatter(x=out_sample_data['Date'], y=gs1m_conf_int.iloc[:, 1], mode='lines', fill='tonexty', line=dict(color='lightblue'), name='Upper CI GS1M')
-fig_gs1m.update_layout(title='GS1M Forecasting', xaxis_title='Date', yaxis_title='GS1M')
+fig_gs1m.update_layout(title='GS1M Forecasting', xaxis_title='Period', yaxis_title='GS1M')
 st.plotly_chart(fig_gs1m)
