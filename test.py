@@ -113,7 +113,7 @@ forecast_df['Lower_Bound'] = forecast_df['Forecasted_SPX'] - 50  # Adjust lower 
 # Plotting the results
 fig = px.line(df, x='Date', y='SPX', title='Actual SPX Values vs Forecasted SPX Values with Bounds')
 fig.add_scatter(x=forecast_df['Date'], y=forecast_df['Forecasted_SPX'], name='Forecasted SPX Values', mode='lines', line=dict(color='red'))
-fig.add_trace(go.Scatter(x=forecast_df['Date'], y=forecast_df['Upper_Bound'], fill='tonexty', fillcolor='rgba(255,192,203,0.5)', name='Upper Bound'))
-fig.add_trace(go.Scatter(x=forecast_df['Date'], y=forecast_df['Lower_Bound'], fill='tonexty', fillcolor='rgba(255,192,203,0.5)', name='Lower Bound'))
+fig.add_scatter(x=forecast_df['Date'], y=forecast_df['Upper_Bound'],line_shape="spline", fill='toself', fillcolor='rgba(255,192,203,0.5)', line=dict(color='rgba(255,192,203,0.5)'),showlegend=False)
+fig.add_scatter(x=forecast_df['Date'], y=forecast_df['Lower_Bound'],line_shape="spline", fill='toself', fillcolor='rgba(255,192,203,0.5)', line=dict(color='rgba(255,192,203,0.5)'), showlegend=False)
 
 st.plotly_chart(fig)
