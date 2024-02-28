@@ -68,7 +68,7 @@ out_sample_end_month_timestamp = pd.Timestamp(out_sample_end_month.end_time)
 
 # Filter data for in-sample and out-of-sample periods
 in_sample_data = df[df['Date'] <= in_sample_end_month_timestamp]
-out_sample_data = df[(df['Date'] > in_sample_end_month_timestamp) and (df['Date'] <= out_sample_end_month_timestamp)]
+out_sample_data = df[(df['Date'] > in_sample_end_month_timestamp) & (df['Date'] <= out_sample_end_month_timestamp)]
 
 # Fit SARIMAX models
 spx_model = SARIMAX(in_sample_data['SPX'], order=(1, 1, 1), seasonal_order=(1, 1, 1, 12))
