@@ -2,8 +2,7 @@ streamlit
 pandas
 numpy
 datetime
-matplotlib
 statsmodels
 tensorflow
-sklearn
+matplotlib
 plotly
