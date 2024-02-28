@@ -38,6 +38,31 @@ df = pd.DataFrame(data)
 # Convert date to mm-yyyy format
 df['MonthYear'] = df['Date'].dt.strftime('%m-%Y')
 
+# Function to forecast SPX values
+def forecast_SPX(spx_data, in_sample_start_month, out_sample_end_month):
+    forecasts = []
+    in_sample_end_month = in_sample_start_month + 23  # Initial in-sample period
+    
+    # Iterate over each month in the forecasting period
+    while in_sample_end_month < out_sample_end_month:
+        # Subset the data for the current in-sample period
+        in_sample_data = spx_data[spx_data['Date'].dt.to_period('M').between(in_sample_start_month, in_sample_end_month)]
+        
+        # Fit SARIMAX model to the in-sample data
+        model = SARIMAX(in_sample_data['SPX'], order=(1, 1, 1), seasonal_order=(1, 1, 1, 12))
+        results = model.fit()
+        
+        # Forecast the SPX value for the next month
+        forecast_month = in_sample_end_month + 1
+        forecast_value = results.forecast(steps=1)
+        forecasts.append((forecast_month, forecast_value.values[0]))
+        
+        # Update the in-sample period for the next iteration
+        in_sample_end_month += 1
+        in_sample_start_month += 1
+    
+    return forecasts
+
 # Streamlit app
 st.title('Portfolio Optimisation Tool')
 
@@ -64,3 +89,17 @@ out_sample_end_month = st.sidebar.selectbox("Select end month for forecasting pe
 st.write("## Selected Periods")
 st.write(f"In-Sample Period: {in_sample_start_month} to {in_sample_end_month}")
 st.write(f"Out-of-Sample Period (Forecasting period): Till {out_sample_end_month}")
+
+# Function call to forecast SPX values
+forecasts = forecast_SPX(df, in_sample_start_month, out_sample_end_month)
+
+# Plotting the results
+forecast_dates = [forecast[0].to_timestamp() for forecast in forecasts]
+forecast_values = [forecast[1] for forecast in forecasts]
+
+actual_dates = df['Date']
+actual_values = df['SPX']
+
+fig = px.line(x=actual_dates, y=actual_values, labels={'x':'Date', 'y':'SPX'}, title='Actual SPX Values vs Forecasted SPX Values')
+fig.add_scatter(x=forecast_dates, y=forecast_values, mode='lines', name='Forecasted SPX Values', line=dict(color='red'))
+st.plotly_chart(fig)
