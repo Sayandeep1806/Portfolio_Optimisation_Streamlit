@@ -3,7 +3,7 @@ import pandas as pd
 from datetime import datetime, timedelta
 from statsmodels.tsa.statespace.sarimax import SARIMAX
 import matplotlib
-import plotly.graph_objects as go
+import plotly.express as px
 
 # Sample data provided
 data = {
@@ -93,35 +93,26 @@ st.write(f"Out-of-Sample Period (Forecasting period): Till {out_sample_end_month
 # Function call to forecast SPX values
 forecasts = forecast_SPX(df, in_sample_start_month, out_sample_end_month)
 
-# Plotting the results
+# Prepare data for plotting
 forecast_dates = [forecast[0].to_timestamp() for forecast in forecasts]
 forecast_values = [forecast[1] for forecast in forecasts]
 
 actual_dates = df['Date']
 actual_values = df['SPX']
 
-fig = go.Figure()
+# Create DataFrame for plotting upper and lower bounds
+forecast_df = pd.DataFrame({
+    'Date': forecast_dates,
+    'Forecasted_SPX': forecast_values
+})
 
-# Plot actual SPX values
-fig.add_trace(go.Scatter(x=actual_dates, y=actual_values, mode='lines', name='Actual SPX Values'))
+forecast_df['Upper_Bound'] = forecast_df['Forecasted_SPX'] + 50  # Adjust upper bound as needed
+forecast_df['Lower_Bound'] = forecast_df['Forecasted_SPX'] - 50  # Adjust lower bound as needed
 
-# Plot forecasted SPX values with upper and lower bounds
-forecast_upper_bounds = []
-forecast_lower_bounds = []
-for i in range(len(forecast_dates)):
-    upper_bound = forecast_values[i] + 50  # Adjust upper bound as needed
-    lower_bound = forecast_values[i] - 50  # Adjust lower bound as needed
-    forecast_upper_bounds.append(upper_bound)
-    forecast_lower_bounds.append(lower_bound)
-
-fig.add_trace(go.Scatter(x=forecast_dates, y=forecast_values, mode='lines', name='Forecasted SPX Values'))
-fig.add_trace(go.Scatter(x=forecast_dates, y=forecast_upper_bounds, fill='tonexty', mode='lines', name='Upper Bound'))
-fig.add_trace(go.Scatter(x=forecast_dates, y=forecast_lower_bounds, fill='tonexty', mode='lines', name='Lower Bound'))
-
-# Set plot layout
-fig.update_layout(title='Actual SPX Values vs Forecasted SPX Values with Bounds',
-                  xaxis_title='Date',
-                  yaxis_title='SPX',
-                  xaxis=dict(range=[min(actual_dates), max(forecast_dates)]))  # Adjust x-axis range
+# Plotting the results
+fig = px.line(df, x='Date', y='SPX', title='Actual SPX Values vs Forecasted SPX Values with Bounds')
+fig.add_scatter(x=forecast_df['Date'], y=forecast_df['Forecasted_SPX'], name='Forecasted SPX Values', mode='lines')
+fig.add_scatter(x=forecast_df['Date'], y=forecast_df['Upper_Bound'], fill='tonexty', name='Upper Bound', mode='lines')
+fig.add_scatter(x=forecast_df['Date'], y=forecast_df['Lower_Bound'], fill='tonexty', name='Lower Bound', mode='lines')
 
 st.plotly_chart(fig)
