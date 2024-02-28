@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-from datetime import datetime, timedelta
 from statsmodels.tsa.statespace.sarimax import SARIMAX
 import matplotlib
 import plotly.express as px
@@ -112,8 +111,17 @@ forecast_df['Lower_Bound'] = forecast_df['Forecasted_SPX'] - 50  # Adjust lower 
 
 # Plotting the results
 fig = px.line(df, x='Date', y='SPX', title='Actual SPX Values vs Forecasted SPX Values with Bounds')
-fig.add_scatter(x=forecast_df['Date'], y=forecast_df['Forecasted_SPX'], name='Forecasted SPX Values', mode='lines', line=dict(color='red'))
-fig.add_scatter(x=forecast_df['Date'], y=forecast_df['Upper_Bound'],line_shape="spline", fill='toself', fillcolor='rgba(255,192,203,0.5)', line=dict(color='rgba(255,192,203,0.5)'),showlegend=False)
-fig.add_scatter(x=forecast_df['Date'], y=forecast_df['Lower_Bound'],line_shape="spline", fill='toself', fillcolor='rgba(255,192,203,0.5)', line=dict(color='rgba(255,192,203,0.5)'), showlegend=False)
+
+# Add forecasted values and bounds as shaded area
+fig.add_scatter(x=forecast_df['Date'], y=forecast_df['Forecasted_SPX'], mode='lines', line=dict(color='red'), name='Forecasted SPX')
+fig.add_trace(go.Scatter(
+    x=forecast_df['Date'].tolist() + forecast_df['Date'].tolist()[::-1],
+    y=forecast_df['Upper_Bound'].tolist() + forecast_df['Lower_Bound'].tolist()[::-1],
+    fill='toself',
+    fillcolor='rgba(255,192,203,0.5)',
+    line_color='rgba(255,192,203,0)',
+    showlegend=False,
+    name="Upper and Lower Bounds"
+))
 
 st.plotly_chart(fig)
