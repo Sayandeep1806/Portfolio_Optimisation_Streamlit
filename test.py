@@ -134,3 +134,14 @@ fig.add_trace(go.Scatter(
 fig.add_trace(go.Scatter(x=actual_dates, y=actual_values, mode='lines', name='Actual SPX', line=dict(color='blue')))
 
 st.plotly_chart(fig)
+
+# Create DataFrame for table
+table_data = {
+    'Date': [forecast[0].to_timestamp() for forecast in forecasts],
+    'Actual_SPX': df[df['Date'].isin([forecast[0].to_timestamp() for forecast in forecasts])]['SPX'].values,
+    'Forecasted_SPX': [forecast[1] for forecast in forecasts]
+}
+
+# Display table
+st.write("## SPX Values for Forecasted Dates")
+st.dataframe(pd.DataFrame(table_data))
