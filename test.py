@@ -38,9 +38,6 @@ df = pd.DataFrame(data)
 # Convert date to mm-yyyy format
 df['MonthYear'] = df['Date'].dt.strftime('%m-%Y')
 
-# Convert annualized yield to monthly return
-df['Monthly_Return'] = ((1 + (df['GS1M'] / 12)) ** (1/12)) - 1
-
 # Function to forecast SPX values
 def forecast_SPX(spx_data, in_sample_start_month, out_sample_end_month):
     forecasts = []
@@ -138,35 +135,14 @@ fig.add_trace(go.Scatter(x=actual_dates, y=actual_values, mode='lines', name='Ac
 
 st.plotly_chart(fig)
 
-# Calculate actual return on SPX for the forecasted period
-actual_return_spx = (df.loc[df['Date'] == out_sample_end_month, 'SPX'].iloc[0] / df.loc[df['Date'] == out_sample_start_month, 'SPX'].iloc[0]) - 1
-
-# Calculate forecasted return on SPX for the forecasted period
-forecasted_return_spx = (forecast_values[-1] / df.loc[df['Date'] == out_sample_end_month, 'SPX'].iloc[0]) - 1
-
-# Calculate actual excess return on SPX for the forecasted period
-actual_excess_return_spx = actual_return_spx - df.loc[df['Date'] == out_sample_end_month, 'Monthly_Return'].iloc[0]
-
-# Calculate forecasted excess return on SPX for the forecasted period
-forecasted_excess_return_spx = forecasted_return_spx - df.loc[df['Date'] == out_sample_end_month, 'Monthly_Return'].iloc[0]
-
 # Create DataFrame for table
 table_data = {
     'Date': [forecast[0].to_timestamp() for forecast in forecasts],
     'Actual_SPX': df[df['Date'].isin([forecast[0].to_timestamp() for forecast in forecasts])]['SPX'].values,
-    'Forecasted_SPX': [forecast[1] for forecast in forecasts],
-    'Monthly_Return': [((1 + (yield_ / 12)) ** (1/12)) - 1 for yield_ in df['GS1M']],
-    'Actual_Excess_Return': [((value / df.loc[df['Date'] == out_sample_start_month, 'SPX'].iloc[0]) - 1) - monthly_return for value, monthly_return in zip(df[df['Date'].isin([forecast[0].to_timestamp() for forecast in forecasts])]['SPX'].values, df[df['Date'].isin([forecast[0].to_timestamp() for forecast in forecasts])]['Monthly_Return'].values)],
-    'Forecasted_Excess_Return': [(forecast_value / df.loc[df['Date'] == out_sample_start_month, 'SPX'].iloc[0]) - 1 - df.loc[df['Date'] == forecast_month, 'Monthly_Return'].iloc[0] for forecast_month, forecast_value in zip([forecast[0].to_timestamp() for forecast in forecasts], [forecast[1] for forecast in forecasts])]
+    'Forecasted_SPX': [forecast[1] for forecast in forecasts]
 }
 
 # Display table
 st.write("## SPX Values for Forecasted Dates")
 st.dataframe(pd.DataFrame(table_data))
 
-# Display actual return on SPX, forecasted return on SPX, actual excess return, and forecasted excess return
-st.write("## Returns and Excess Returns")
-st.write(f"Actual Return on SPX for the forecasted period: {actual_return_spx:.2%}")
-st.write(f"Forecasted Return on SPX for the forecasted period: {forecasted_return_spx:.2%}")
-st.write(f"Actual Excess Return on SPX for the forecasted period: {actual_excess_return_spx:.2%}")
-st.write(f"Forecasted Excess Return on SPX for the forecasted period: {forecasted_excess_return_spx:.2%}")
