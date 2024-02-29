@@ -119,6 +119,7 @@ forecast_df = pd.DataFrame({
     'GS1M_Monthly_Returns': df[df['Date'].isin([forecast[0].to_timestamp() for forecast in forecasts])]['GS1M_Monthly_Returns'].values
 })
 
+# Calculating upper and lower bounds
 forecast_df['Upper_Bound'] = forecast_df['Forecasted_SPX'] + 100  # Adjust upper bound as needed
 forecast_df['Lower_Bound'] = forecast_df['Forecasted_SPX'] - 100  # Adjust lower bound as needed
 
@@ -133,6 +134,8 @@ forecast_df['Forecasted_Returns'][0] = forecast_df['Actual_Returns'][1:].mean()
 forecast_df['Actual_Excess_Returns'] = forecast_df['Actual_Returns'] - forecast_df['GS1M_Monthly_Returns']
 forecast_df['Forecasted_Excess_Returns'] = forecast_df['Forecasted_Returns'] - forecast_df['GS1M_Monthly_Returns']
 
+# Analysis of the data
+st.write("## Analysis")
 
 # Plotting the results
 fig = px.line(filtered_df, x='Date', y='SPX', title='Actual SPX Values vs Forecasted SPX Values')
@@ -161,7 +164,7 @@ fig_returns.update_layout(title='Actual vs Forecasted Excess Returns on SPX', xa
 st.plotly_chart(fig_returns)
 
 
-# Display imported data in tabular format
-st.write("## Excess Returns on SPX for Forecasted Period")
+# Display the data in tabular format
+st.write("## Analysis of Actual vs Estimated data for the Forecasted Period")
 st.dataframe(forecast_df[['Date','Actual_SPX','Forecasted_SPX','Actual_Returns','Forecasted_Returns',
                           'GS1M','GS1M_Monthly_Returns','Actual_Excess_Returns','Forecasted_Excess_Returns']])
