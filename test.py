@@ -168,7 +168,7 @@ mean_of_actual_excess_returns = forecast_df['Actual_Excess_Returns'].mean()
 forecast_df['Variance_in_Excess_Returns'] =  (forecast_df['Forecasted_Excess_Returns']-mean_of_actual_excess_returns)**2
 
 # Calculate weight to be assigned to the broad stock index (SPX) based on the forecasted data
-forecast_df['Weight_allocation'] = (1/risk_aversion)*(forecast_df['Forecasted_Excess_Returns'].shift(1)/forecast_df['Variance_in_Excess_Returns'].shift(1))
+forecast_df['Weight_allocation'] = (1/risk_aversion)*(forecast_df['Forecasted_Excess_Returns']/forecast_df['Variance_in_Excess_Returns'])
 
 # Display the data in tabular format
 st.write("## Analysis of Actual vs Estimated data for the Forecasted Period")
