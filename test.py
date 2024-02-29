@@ -146,3 +146,24 @@ table_data = {
 st.write("## SPX Values for Forecasted Dates")
 st.dataframe(pd.DataFrame(table_data))
 
+# Calculate monthly returns
+df['GS1M_Returns'] = ((1 + (df['GS1M'] / 12)) ** (1/12)) - 1
+df['Actual_Returns_SPX'] = df['SPX'].pct_change()
+df['Forecasted_Returns_SPX'] = forecast_df['Forecasted_SPX'].pct_change()
+df['Actual_Excess_Return_SPX'] = df['Actual_Returns_SPX'] - df['GS1M_Returns']
+df['Forecasted_Excess_Return_SPX'] = df['Forecasted_Returns_SPX'] - df['GS1M_Returns']
+
+# Plotting the results
+fig = px.line(df, x='Date', y=['Actual_Excess_Return_SPX', 'Forecasted_Excess_Return_SPX'], title='Actual vs Forecasted Excess Returns on SPX')
+st.plotly_chart(fig)
+
+# Create DataFrame for table
+table_data = {
+    'Date': df['Date'],
+    'Actual_Excess_Return_SPX': df['Actual_Excess_Return_SPX'],
+    'Forecasted_Excess_Return_SPX': df['Forecasted_Excess_Return_SPX']
+}
+
+# Display table
+st.write("## Excess Returns on SPX")
+st.dataframe(pd.DataFrame(table_data))
