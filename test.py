@@ -130,7 +130,7 @@ forecast_df['Actual_Returns'][0] = forecast_df['Actual_Returns'][1:].mean()
 forecast_df['Forecasted_Returns'][0] = forecast_df['Actual_Returns'][1:].mean()
 
 # Calculating excess returns
-forecast_df['Actual_Excess_Returns'] = forecast_df['Actual_Returns'] - forecast_df['GS1M_Monthly_Returns'],
+forecast_df['Actual_Excess_Returns'] = forecast_df['Actual_Returns'] - forecast_df['GS1M_Monthly_Returns']
 forecast_df['Forecasted_Excess_Returns'] = forecast_df['Forecasted_Returns'] - forecast_df['GS1M_Monthly_Returns']
 
 
