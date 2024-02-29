@@ -39,9 +39,8 @@ df = pd.DataFrame(data)
 df['MonthYear'] = df['Date'].dt.strftime('%m-%Y')
 
 # Function to forecast SPX values
-def forecast_SPX(spx_data, in_sample_start_month, out_sample_end_month):
+def forecast_SPX(spx_data, in_sample_start_month,in_sample_end_month, out_sample_end_month):
     forecasts = []
-    in_sample_end_month = in_sample_start_month + 23  # Initial in-sample period
     
     # Iterate over each month in the forecasting period
     while in_sample_end_month < out_sample_end_month:
@@ -91,8 +90,8 @@ out_sample_end_month = st.sidebar.selectbox("Select end month for forecasting pe
 
 # Display selected periods
 st.write("## Selected Periods")
-st.write(f"In-Sample Period: {in_sample_start_month} to {in_sample_end_month}")
-st.write(f"Out-of-Sample Period (Forecasting period): Till {out_sample_end_month}")
+st.write(f"In-Sample Period: From {in_sample_start_month} to {in_sample_end_month}")
+st.write(f"Out-of-Sample Period (Forecasting period): From {out_sample_start_month} to {out_sample_end_month}")
 
 # Function call to forecast SPX values
 forecasts = forecast_SPX(df, in_sample_start_month, out_sample_end_month)
