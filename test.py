@@ -66,6 +66,9 @@ def forecast_SPX(spx_data, in_sample_start_month, out_sample_end_month):
 # Streamlit app
 st.title('Portfolio Optimisation Tool')
 
+# Ask the user to enter the risk aversion
+risk_aversion = st.slider('Risk Aversion (γ)', min_value=0.1, max_value=10.0, step=0.1, value=2.0)
+
 # Find min and max months
 min_month = df['Date'].dt.to_period('M').min()
 max_month = df['Date'].dt.to_period('M').max()
@@ -120,7 +123,8 @@ fig.add_trace(go.Scatter(
     fill='toself',
     fillcolor='rgba(255,192,203,0.5)',
     line_color='rgba(255,192,203,0)',
-    showlegend=True
+    showlegend=False,
+    name="Upper and Lower Bounds"
 ))
 
 # Add legend for actual SPX values
