@@ -122,14 +122,17 @@ forecast_df = pd.DataFrame({
 forecast_df['Upper_Bound'] = forecast_df['Forecasted_SPX'] + 100  # Adjust upper bound as needed
 forecast_df['Lower_Bound'] = forecast_df['Forecasted_SPX'] - 100  # Adjust lower bound as needed
 
-# Calculate metrics for forecasting period
+# Calculating returns
 forecast_df['Actual_Returns'] = np.log(forecast_df['Actual_SPX'] / forecast_df['Actual_SPX'].shift(1))
 forecast_df['Forecasted_Returns'] = np.log(forecast_df['Forecasted_SPX'] / forecast_df['Forecasted_SPX'].shift(1))
+# Replacing the first 'NaN' values of Actual and Forecasted returns with the mean of the actual returns
+forecast_df['Actual_Returns'][0] = forecast_df['Actual_Returns'][1:].mean()
+forecast_df['Actual_Returns'][0] = forecast_df['Actual_Returns'][1:].mean()
+
+# Calculating excess returns
 forecast_df['Actual_Excess_Returns'] = forecast_df['Actual_Returns'] - forecast_df['GS1M_Monthly_Returns'],
 forecast_df['Forecasted_Excess_Returns'] = forecast_df['Forecasted_Returns'] - forecast_df['GS1M_Monthly_Returns']
 
-# Replacing the first 'NaN' values of Actual and Forecasted returns with the mean of the actual returns
-forecast_df['Actual_Returns'][0] = forecast_df['Actual_Returns'][0] = forecast_df['Actual_Returns'][1:].mean()
 
 # Plotting the results
 fig = px.line(filtered_df, x='Date', y='SPX', title='Actual SPX Values vs Forecasted SPX Values')
