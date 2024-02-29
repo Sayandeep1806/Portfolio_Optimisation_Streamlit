@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import numpy as np
 from statsmodels.tsa.statespace.sarimax import SARIMAX
 import matplotlib
 import plotly.express as px
@@ -122,8 +123,8 @@ forecast_df['Upper_Bound'] = forecast_df['Forecasted_SPX'] + 100  # Adjust upper
 forecast_df['Lower_Bound'] = forecast_df['Forecasted_SPX'] - 100  # Adjust lower bound as needed
 
 # Calculate metrics for forecasting period
-forecast_df['Actual_Returns'] = forecast_df['Actual_SPX'].pct_change()
-forecast_df['Forecasted_Returns'] = forecast_df['Forecasted_SPX'].pct_change()
+forecast_df['Actual_Returns'] = np.log(forecast_df['Actual_SPX'] / forecast_df['Actual_SPX'].shift(1))
+forecast_df['Forecasted_Returns'] = np.log(forecast_df['Forecasted_SPX'] / forecast_df['Forecasted_SPX'].shift(1))
 forecast_df['Actual_Excess_Returns'] = forecast_df['Actual_Returns'] - forecast_df['GS1M_Monthly_Returns'],
 forecast_df['Forecasted_Excess_Returns'] = forecast_df['Forecasted_Returns'] - forecast_df['GS1M_Monthly_Returns']
 
@@ -145,6 +146,13 @@ fig.add_trace(go.Scatter(
 fig.add_trace(go.Scatter(x=actual_dates, y=actual_values, mode='lines', name='Actual SPX', line=dict(color='blue')))
 
 st.plotly_chart(fig)
+
+# Plot Actual and Forecasted Excess Returns on SPX
+fig_returns = go.Figure()
+fig_returns.add_trace(go.Scatter(x=forecast_df['Date'], y=forecast_df['Actual_Excess_Returns'], mode='lines', name='Actual Excess Returns'))
+fig_returns.add_trace(go.Scatter(x=forecast_df['Date'], y=forecast_df['Forecasted_Excess_Returns'], mode='lines', name='Forecasted Excess Returns'))
+fig_returns.update_layout(title='Actual vs Forecasted Excess Returns on SPX', xaxis_title='Date', yaxis_title='Excess Returns')
+st.plotly_chart(fig_returns)
 
 
 # Display imported data in tabular format
