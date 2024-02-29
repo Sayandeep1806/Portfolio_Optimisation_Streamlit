@@ -46,7 +46,7 @@ def forecast_SPX(spx_data, in_sample_start_month, out_sample_end_month):
     # Iterate over each month in the forecasting period
     while in_sample_end_month < out_sample_end_month:
         # Subset the data for the current in-sample period
-        in_sample_data = spx_data[spx_data['Date'].between(in_sample_start_month, in_sample_end_month)]
+        in_sample_data = spx_data[spx_data['Date'].dt.to_period('M').between(in_sample_start_month, in_sample_end_month)]
         
         # Fit SARIMAX model to the in-sample data
         model = SARIMAX(in_sample_data['SPX'], order=(1, 1, 1), seasonal_order=(1, 1, 1, 12))
@@ -68,44 +68,44 @@ st.title('Portfolio Optimisation Tool')
 
 # Ask the user to enter the risk aversion
 st.write("## Select User Risk Appetite")
-risk_aversion = st.slider("Risk Aversion (γ)", min_value=0.1, max_value=10.0, step=0.1, value=2.0)
+risk_aversion = st.slider("Risk Aversion (γ)",min_value=0.1, max_value=10.0, step=0.1, value=2.0)
 
 # Find min and max months
-min_month = df['Date'].min().strftime('%m-%Y')
-max_month = df['Date'].max().strftime('%m-%Y')
+min_month = df['Date'].dt.to_period('M').min()
+max_month = df['Date'].dt.to_period('M').max()
 
 # User input for in-sample period end month
 st.sidebar.write("### Select In-Sample Period")
-st.sidebar.write(f"The data is available from {min_month} to {max_month}. Please allow at least 2 years of data for training the model.")
+st.sidebar.write(f"The data is available from {min_month} to {max_month}. Please allow atleast 2 years of data for training the model.")
 in_sample_start_month = st.sidebar.selectbox("Select start month for in-sample period",
-                                           options=pd.date_range(start=df['Date'].min(), end=df['Date'].max() - pd.DateOffset(months=24), freq='MS'))
+                                           options=pd.period_range(start=min_month, end=max_month-24, freq='M'))
 in_sample_end_month = st.sidebar.selectbox("Select end month for initial in-sample period",
-                                           options=pd.date_range(start=in_sample_start_month + pd.DateOffset(months=23), end=df['Date'].max(), freq='MS'))
+                                           options=pd.period_range(start=in_sample_start_month+23, end=max_month, freq='M'))
 
 # User input for out-of-sample period end month
 st.sidebar.write("### Select Out-of-Sample Period")
-out_sample_start_month = in_sample_end_month + pd.DateOffset(months=1)
-max_allowed_month = df['Date'].max() + pd.DateOffset(months=1)
+out_sample_start_month = in_sample_end_month + 1
+max_allowed_month = max_month + 1
 out_sample_end_month = st.sidebar.selectbox("Select end month for forecasting period",
-                                             options=pd.date_range(start=out_sample_start_month, end=max_allowed_month, freq='MS'))
+                                             options=pd.period_range(start=out_sample_start_month, end=max_allowed_month, freq='M'))
 
 # Display selected periods
 st.write("## Selected Periods")
-st.write(f"In-Sample Period: {in_sample_start_month.strftime('%m-%Y')} to {in_sample_end_month.strftime('%m-%Y')}")
-st.write(f"Out-of-Sample Period (Forecasting period): Till {out_sample_end_month.strftime('%m-%Y')}")
+st.write(f"In-Sample Period: {in_sample_start_month} to {in_sample_end_month}")
+st.write(f"Out-of-Sample Period (Forecasting period): Till {out_sample_end_month}")
 
 # Function call to forecast SPX values
 forecasts = forecast_SPX(df, in_sample_start_month, out_sample_end_month)
 
 # Prepare data for plotting
-forecast_dates = [forecast[0] for forecast in forecasts]
+forecast_dates = [forecast[0].to_timestamp() for forecast in forecasts]
 forecast_values = [forecast[1] for forecast in forecasts]
 
 actual_dates = df['Date']
 actual_values = df['SPX']
 
 # Filter data for plotting
-filtered_df = df[(df['Date'] >= in_sample_start_month) & (df['Date'] <= out_sample_end_month)]
+filtered_df = df[(df['Date'] >= pd.Timestamp(in_sample_start_month.to_timestamp())) & (df['Date'] <= pd.Timestamp(out_sample_end_month.to_timestamp()))]
 
 # Create DataFrame for plotting upper and lower bounds
 forecast_df = pd.DataFrame({
@@ -137,8 +137,8 @@ st.plotly_chart(fig)
 
 # Create DataFrame for table
 table_data = {
-    'Date': [forecast[0].strftime('%m-%Y') for forecast in forecasts],
-    'Actual_SPX': df[df['Date'].isin([forecast[0] for forecast in forecasts])]['SPX'].values,
+    'Date': [forecast[0].to_timestamp() for forecast in forecasts],
+    'Actual_SPX': df[df['Date'].isin([forecast[0].to_timestamp() for forecast in forecasts])]['SPX'].values,
     'Forecasted_SPX': [forecast[1] for forecast in forecasts]
 }
 
