@@ -132,13 +132,3 @@ fig.add_trace(go.Scatter(x=actual_dates, y=actual_values, mode='lines', name='Ac
 
 st.plotly_chart(fig)
 
-# Display the out-of-sample period along with actual and forecasted SPX values in a tabular format
-out_sample_df = pd.DataFrame({
-    'Date': out_sample_dates,
-    'Actual_SPX': out_sample_actual_values,
-    'Forecasted_SPX': out_sample_forecast_values
-})
-
-# Show the out-of-sample data in a tabular format
-st.write("## Out-of-Sample Period SPX Values")
-st.table(out_sample_df)
