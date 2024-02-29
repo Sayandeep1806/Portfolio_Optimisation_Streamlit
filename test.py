@@ -80,7 +80,7 @@ st.sidebar.write(f"The data is available from {min_month} to {max_month}. Please
 in_sample_start_month = st.sidebar.selectbox("Select start month for in-sample period",
                                            options=pd.period_range(start=min_month, end=max_month-24, freq='M'))
 in_sample_end_month = st.sidebar.selectbox("Select end month for initial in-sample period",
-                                           options=pd.period_range(start=in_sample_start_month+23, end=max_month, freq='M'))
+                                           options=pd.period_range(start=in_sample_start_month, end=max_month, freq='M'))
 
 # User input for out-of-sample period end month
 st.sidebar.write("### Select Out-of-Sample Period")
