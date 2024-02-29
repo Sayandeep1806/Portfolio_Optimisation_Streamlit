@@ -147,21 +147,21 @@ st.write("## SPX Values for Forecasted Dates")
 st.dataframe(pd.DataFrame(table_data))
 
 # Calculate monthly returns
-df['GS1M_Returns'] = ((1 + (df['GS1M'] / 12)) ** (1/12)) - 1
-df['Actual_Returns_SPX'] = df['SPX'].pct_change()
-df['Forecasted_Returns_SPX'] = forecast_df['Forecasted_SPX'].pct_change()
-df['Actual_Excess_Return_SPX'] = df['Actual_Returns_SPX'] - df['GS1M_Returns']
-df['Forecasted_Excess_Return_SPX'] = df['Forecasted_Returns_SPX'] - df['GS1M_Returns']
+forecast_df['GS1M_Returns'] = ((1 + (forecast_df['GS1M'] / 12)) ** (1/12)) - 1
+forecast_df['Actual_Returns_SPX'] = forecast_df['SPX'].pct_change()
+forecast_df['Forecasted_Returns_SPX'] = forecast_df['Forecasted_SPX'].pct_change()
+forecast_df['Actual_Excess_Return_SPX'] = forecast_df['Actual_Returns_SPX'] - forecast_df['GS1M_Returns']
+forecast_df['Forecasted_Excess_Return_SPX'] = forecast_df['Forecasted_Returns_SPX'] - forecast_df['GS1M_Returns']
 
 # Plotting the results
-fig_1 = px.line(df[df['Date'].isin([forecast[0].to_timestamp() for forecast in forecasts])], x='Date', y=['Actual_Excess_Return_SPX', 'Forecasted_Excess_Return_SPX'], title='Actual vs Forecasted Excess Returns on SPX')
+fig_1 = px.line(forecast_df, x='Date', y=['Actual_Excess_Return_SPX', 'Forecasted_Excess_Return_SPX'], title='Actual vs Forecasted Excess Returns on SPX')
 st.plotly_chart(fig_1)
 
 # Create DataFrame for table
 table_data_1 = {
     'Date': [forecast[0].to_timestamp() for forecast in forecasts],
-    'Actual_Excess_Return_SPX': df[df['Date'].isin([forecast[0].to_timestamp() for forecast in forecasts])]['Actual_Excess_Return_SPX'].values,
-    'Forecasted_Excess_Return_SPX': df[df['Date'].isin([forecast[0].to_timestamp() for forecast in forecasts])]['Forecasted_Excess_Return_SPX'].values
+    'Actual_Excess_Return_SPX': forecast_df['Actual_Excess_Return_SPX'].values,
+    'Forecasted_Excess_Return_SPX': forecast_df['Forecasted_Excess_Return_SPX'].values
 }
 
 # Display table
