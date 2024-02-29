@@ -146,13 +146,6 @@ fig.add_trace(go.Scatter(x=actual_dates, y=actual_values, mode='lines', name='Ac
 
 st.plotly_chart(fig)
 
-# Plot Actual and Forecasted Excess Returns on SPX
-fig_returns = go.Figure()
-fig_returns.add_trace(go.Scatter(x=forecast_df['Date'], y=forecast_df['Actual_Excess_Returns'], mode='lines', name='Actual Excess Returns'))
-fig_returns.add_trace(go.Scatter(x=forecast_df['Date'], y=forecast_df['Forecasted_Excess_Returns'], mode='lines', name='Forecasted Excess Returns'))
-fig_returns.update_layout(title='Actual vs Forecasted Excess Returns on SPX', xaxis_title='Date', yaxis_title='Excess Returns')
-st.plotly_chart(fig_returns)
-
 
 # Display imported data in tabular format
 st.write("## Excess Returns on SPX for Forecasted Period")
