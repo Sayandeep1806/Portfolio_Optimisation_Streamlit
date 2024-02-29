@@ -38,6 +38,9 @@ df = pd.DataFrame(data)
 # Convert date to mm-yyyy format
 df['MonthYear'] = df['Date'].dt.strftime('%m-%Y')
 
+# Convert annualized yield to monthly return
+df['Monthly_Return'] = ((1 + (df['GS1M'] / 12)) ** (1/12)) - 1
+
 # Function to forecast SPX values
 def forecast_SPX(spx_data, in_sample_start_month, out_sample_end_month):
     forecasts = []
@@ -145,3 +148,26 @@ table_data = {
 # Display table
 st.write("## SPX Values for Forecasted Dates")
 st.dataframe(pd.DataFrame(table_data))
+
+# Calculate actual return on SPX for the forecasted period
+actual_return_spx = (df.loc[df['Date'] == out_sample_end_month, 'SPX'].iloc[0] / df.loc[df['Date'] == out_sample_start_month, 'SPX'].iloc[0]) - 1
+
+# Calculate forecasted return on SPX for the forecasted period
+forecasted_return_spx = (forecast_values[-1] / df.loc[df['Date'] == out_sample_end_month, 'SPX'].iloc[0]) - 1
+
+# Calculate actual excess return on SPX at a monthly level for the forecasted period
+actual_excess_return = df.loc[df['Date'] >= out_sample_start_month, 'SPX'] / df.loc[df['Date'] >= out_sample_start_month, 'SPX'].shift(1) - 1 - df.loc[df['Date'] >= out_sample_start_month, 'Monthly_Return']
+
+# Calculate forecasted excess return on SPX at a monthly level for the forecasted period
+forecasted_excess_return = forecast_values[-1] / df.loc[df['Date'] == out_sample_end_month, 'SPX'].iloc[0] - df.loc[df['Date'] >= out_sample_start_month, 'Monthly_Return']
+
+# Create DataFrame for table
+excess_return_data = {
+    'Date': df.loc[df['Date'] >= out_sample_start_month, 'Date'],
+    'Actual_Excess_Return': actual_excess_return,
+    'Forecasted_Excess_Return': forecasted_excess_return
+}
+
+# Display excess return in a tabular format
+st.write("## Excess Return for Actual and Forecasted SPX")
+st.dataframe(pd.DataFrame(excess_return_data))
