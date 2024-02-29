@@ -38,6 +38,9 @@ df = pd.DataFrame(data)
 # Convert date to mm-yyyy format
 df['MonthYear'] = df['Date'].dt.strftime('%m-%Y')
 
+# Convert annualized returns to monthly returns
+df['GS1M_Monthly_Returns'] = ((1 + (df['GS1M'] / 12)) ** (1/12)) - 1
+
 # Function to forecast SPX values
 def forecast_SPX(spx_data, in_sample_start_month,in_sample_end_month, out_sample_end_month):
     forecasts = []
@@ -109,6 +112,7 @@ filtered_df = df[(df['Date'] >= pd.Timestamp(in_sample_start_month.to_timestamp(
 # Create DataFrame for plotting upper and lower bounds
 forecast_df = pd.DataFrame({
     'Date': forecast_dates,
+    'Actual_SPX': df[df['Date'].isin([forecast[0].to_timestamp() for forecast in forecasts])]['SPX'].values,
     'Forecasted_SPX': forecast_values
 })
 
@@ -134,37 +138,6 @@ fig.add_trace(go.Scatter(x=actual_dates, y=actual_values, mode='lines', name='Ac
 
 st.plotly_chart(fig)
 
-# Create DataFrame for table
-table_data = {
-    'Date': [forecast[0].to_timestamp() for forecast in forecasts],
-    'Actual_SPX': df[df['Date'].isin([forecast[0].to_timestamp() for forecast in forecasts])]['SPX'].values,
-    'Forecasted_SPX': [forecast[1] for forecast in forecasts]
-}
-
 # Display table
 st.write("## SPX Values for Forecasted Dates")
-st.dataframe(pd.DataFrame(table_data))
-
-# Calculate metrics for forecasting period
-forecasting_period_df = df[df['Date'].dt.to_period('M').between(out_sample_start_month, out_sample_end_month)]
-forecasting_period_df['GS1M_Returns'] = ((1 + (forecasting_period_df['GS1M'] / 12)) ** (1/12)) - 1
-forecasting_period_df['Actual_Returns'] = forecasting_period_df['SPX'].pct_change()
-forecasting_period_df['Forecasted_Returns'] = forecasting_period_df['SPX'].shift(-1) / forecasting_period_df['SPX'] - 1
-forecasting_period_df['Actual_Excess_Returns'] = forecasting_period_df['Actual_Returns'] - forecasting_period_df['GS1M_Returns']
-forecasting_period_df['Forecasted_Excess_Returns'] = forecasting_period_df['Forecasted_Returns'] - forecasting_period_df['GS1M_Returns']
-
-# Plot Actual and Forecasted Excess Returns on SPX
-fig_returns = go.Figure()
-fig_returns.add_trace(go.Scatter(x=forecasting_period_df['Date'], y=forecasting_period_df['Actual_Excess_Returns'], mode='lines', name='Actual Excess Returns'))
-fig_returns.add_trace(go.Scatter(x=forecasting_period_df['Date'], y=forecasting_period_df['Forecasted_Excess_Returns'], mode='lines', name='Forecasted Excess Returns'))
-fig_returns.update_layout(title='Actual vs Forecasted Excess Returns on SPX', xaxis_title='Date', yaxis_title='Excess Returns')
-st.plotly_chart(fig_returns)
-
-# Display Actual and Forecasted Excess Returns on SPX in tabular format
-returns_table_data = {
-    'Date': forecasting_period_df['Date'],
-    'Actual Excess Returns': forecasting_period_df['Actual_Excess_Returns'],
-    'Forecasted Excess Returns': forecasting_period_df['Forecasted_Excess_Returns']
-}
-st.write("## Excess Returns on SPX for Forecasted Period")
-st.dataframe(pd.DataFrame(returns_table_data))
+st.dataframe(forecast_df)
