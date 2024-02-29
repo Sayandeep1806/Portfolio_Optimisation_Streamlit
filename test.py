@@ -67,8 +67,8 @@ def forecast_SPX(spx_data, in_sample_start_month, out_sample_end_month):
 st.title('Portfolio Optimisation Tool')
 
 # Ask the user to enter the risk aversion
-st.write("## Select The User Risk Aversion")
-risk_aversion = st.slider('Risk Aversion (γ)', min_value=0.1, max_value=10.0, step=0.1, value=2.0)
+st.write("## Select User Risk Aversion (γ)")
+risk_aversion = st.slider(min_value=0.1, max_value=10.0, step=0.1, value=2.0)
 
 # Find min and max months
 min_month = df['Date'].dt.to_period('M').min()
