@@ -127,7 +127,7 @@ forecast_df['Actual_Returns'] = np.log(forecast_df['Actual_SPX'] / forecast_df['
 forecast_df['Forecasted_Returns'] = np.log(forecast_df['Forecasted_SPX'] / forecast_df['Forecasted_SPX'].shift(1))
 # Replacing the first 'NaN' values of Actual and Forecasted returns with the mean of the actual returns
 forecast_df['Actual_Returns'][0] = forecast_df['Actual_Returns'][1:].mean()
-forecast_df['Actual_Returns'][0] = forecast_df['Actual_Returns'][1:].mean()
+forecast_df['Forecasted_Returns'][0] = forecast_df['Actual_Returns'][1:].mean()
 
 # Calculating excess returns
 forecast_df['Actual_Excess_Returns'] = forecast_df['Actual_Returns'] - forecast_df['GS1M_Monthly_Returns'],
