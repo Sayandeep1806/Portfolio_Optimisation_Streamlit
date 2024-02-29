@@ -140,4 +140,4 @@ st.plotly_chart(fig)
 
 # Display table
 st.write("## SPX Values for Forecasted Dates")
-st.dataframe(forecast_df)
+st.dataframe(forecast_df[['Date','Actual_SPX','Forecasted_SPX']])
