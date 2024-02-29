@@ -114,7 +114,7 @@ forecast_df = pd.DataFrame({
     'Date': forecast_dates,
     'Actual_SPX': df[df['Date'].isin([forecast[0].to_timestamp() for forecast in forecasts])]['SPX'].values,
     'Forecasted_SPX': forecast_values,
-    'GS1M': df[df['Date'].isin([forecast[0].to_timestamp() for forecast in forecasts])]['GS1M'].values,
+    'GS1M': df[df['Date'].isin([forecast[0].to_timestamp() for forecast in forecasts])]['GS1M'].values
     'GS1M_Monthly_Returns': df[df['Date'].isin([forecast[0].to_timestamp() for forecast in forecasts])]['GS1M_Monthly_Returns'].values
 })
 
@@ -124,8 +124,8 @@ forecast_df['Lower_Bound'] = forecast_df['Forecasted_SPX'] - 100  # Adjust lower
 # Calculate metrics for forecasting period
 forecast_df['Actual_Returns'] = forecast_df['Actual_SPX'].pct_change()
 forecast_df['Forecasted_Returns'] = forecast_df['Forecasted_SPX'].pct_change()
-forecast_df['Actual_Excess_Returns'] = forecast_df['Actual_Returns'] - forecast_df['GS1M_Returns']
-forecast_df['Forecasted_Excess_Returns'] = forecast_df['Forecasted_Returns'] - forecast_df['GS1M_Returns']
+forecast_df['Actual_Excess_Returns'] = forecast_df['Actual_Returns'] - forecast_df['GS1M_Monthly_Returns'],
+forecast_df['Forecasted_Excess_Returns'] = forecast_df['Forecasted_Returns'] - forecast_df['GS1M_Monthly_Returns']
 
 # Plotting the results
 fig = px.line(filtered_df, x='Date', y='SPX', title='Actual SPX Values vs Forecasted SPX Values')
