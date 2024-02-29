@@ -114,7 +114,7 @@ forecast_df = pd.DataFrame({
     'Date': forecast_dates,
     'Actual_SPX': df[df['Date'].isin([forecast[0].to_timestamp() for forecast in forecasts])]['SPX'].values,
     'Forecasted_SPX': forecast_values,
-    'GS1M': df[df['Date'].isin([forecast[0].to_timestamp() for forecast in forecasts])]['GS1M'].values
+    'GS1M': df[df['Date'].isin([forecast[0].to_timestamp() for forecast in forecasts])]['GS1M'].values,
     'GS1M_Monthly_Returns': df[df['Date'].isin([forecast[0].to_timestamp() for forecast in forecasts])]['GS1M_Monthly_Returns'].values
 })
 
