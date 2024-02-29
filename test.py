@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 from statsmodels.tsa.statespace.sarimax import SARIMAX
+import matplotlib
 import plotly.express as px
 import plotly.graph_objects as go
 
