@@ -165,6 +165,7 @@ st.plotly_chart(fig_returns)
 
 # Calculate variance on the forecasted data
 mean_of_actual_excess_returns = forecast_df['Actual_Excess_Returns'].mean()
+#forecast_df['Variance_in_Excess_Returns'] =  (forecast_df['Forecasted_Excess_Returns']-mean_of_actual_excess_returns)**2
 forecast_df['Variance_in_Excess_Returns'] =  (forecast_df['Forecasted_Excess_Returns']-mean_of_actual_excess_returns)**2
 
 # Calculate weight to be assigned to the broad stock index (SPX) based on the forecasted data
