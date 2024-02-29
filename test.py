@@ -128,7 +128,7 @@ forecast_df['Actual_Returns'] = np.log(forecast_df['Actual_SPX'] / forecast_df['
 forecast_df['Forecasted_Returns'] = np.log(forecast_df['Forecasted_SPX'] / forecast_df['Forecasted_SPX'].shift(1))
 # Replacing the first 'NaN' values of Actual and Forecasted returns with the mean of the actual returns
 forecast_df['Actual_Returns'][0] = forecast_df['Actual_Returns'][1:].mean()
-forecast_df['Forecasted_Returns'][0] = forecast_df['Actual_Returns'][1:].mean()
+forecast_df['Forecasted_Returns'][0] = forecast_df['Forecasted_Returns'][1:].mean()
 
 # Calculating excess returns
 forecast_df['Actual_Excess_Returns'] = forecast_df['Actual_Returns'] - forecast_df['GS1M_Monthly_Returns']
@@ -163,8 +163,16 @@ fig_returns.add_trace(go.Scatter(x=forecast_df['Date'], y=forecast_df['Forecaste
 fig_returns.update_layout(title='Actual vs Forecasted Excess Returns on SPX', xaxis_title='Date', yaxis_title='Excess Returns')
 st.plotly_chart(fig_returns)
 
+# Calculate variance on the forecasted data
+mean_of_actual_excess_returns = forecast_df['Actual_Excess_Returns'].mean()
+forecast_df['Variance_in_Excess_Returns'] =  (forecast_df['Forecasted_Excess_Returns']-mean_of_actual_excess_returns)**2
+
+# Calculate weight to be assigned to the broad stock index (SPX) based on the forecasted data
+forecast_df['Weight_allocation'] = (1/risk_aversion)*(forecast_df['Forecasted_Excess_Returns'].shift(1)/forecast_df['Variance_in_Excess_Returns'].shift(1))
 
 # Display the data in tabular format
 st.write("## Analysis of Actual vs Estimated data for the Forecasted Period")
 st.dataframe(forecast_df[['Date','Actual_SPX','Forecasted_SPX','Actual_Returns','Forecasted_Returns',
-                          'GS1M','GS1M_Monthly_Returns','Actual_Excess_Returns','Forecasted_Excess_Returns']])
+                          'GS1M','GS1M_Monthly_Returns','Actual_Excess_Returns','Forecasted_Excess_Returns',
+                          'Variance_in_Excess_Returns','Weight_allocation']])
+                                                                   
