@@ -114,7 +114,7 @@ forecast_df['Upper_Bound'] = forecast_df['Forecasted_SPX'] + 100  # Adjust upper
 forecast_df['Lower_Bound'] = forecast_df['Forecasted_SPX'] - 100  # Adjust lower bound as needed
 
 # Plotting the results
-fig = px.line(df, x='Date', y='SPX', title='Actual SPX Values vs Forecasted SPX Values with Bounds')
+fig = px.line(df, x='Date', y='SPX', title='Actual SPX Values vs Forecasted SPX Values')
 
 # Add forecasted values and bounds as shaded area
 fig.add_scatter(x=forecast_df['Date'], y=forecast_df['Forecasted_SPX'], mode='lines', line=dict(color='red'), name='Forecasted SPX')
@@ -124,11 +124,21 @@ fig.add_trace(go.Scatter(
     fill='toself',
     fillcolor='rgba(255,192,203,0.5)',
     line_color='rgba(255,192,203,0)',
-    showlegend=False,
-    name="Upper and Lower Bounds"
+    showlegend=False
 ))
 
 # Add legend for actual SPX values
 fig.add_trace(go.Scatter(x=actual_dates, y=actual_values, mode='lines', name='Actual SPX', line=dict(color='blue')))
 
 st.plotly_chart(fig)
+
+# Display the out-of-sample period along with actual and forecasted SPX values in a tabular format
+out_sample_df = pd.DataFrame({
+    'Date': out_sample_dates,
+    'Actual_SPX': out_sample_actual_values,
+    'Forecasted_SPX': out_sample_forecast_values
+})
+
+# Show the out-of-sample data in a tabular format
+st.write("## Out-of-Sample Period SPX Values")
+st.table(out_sample_df)
