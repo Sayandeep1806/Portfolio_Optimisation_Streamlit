@@ -120,8 +120,7 @@ fig.add_trace(go.Scatter(
     fill='toself',
     fillcolor='rgba(255,192,203,0.5)',
     line_color='rgba(255,192,203,0)',
-    showlegend=False,
-    name="Upper and Lower Bounds"
+    showlegend=True
 ))
 
 # Add legend for actual SPX values
