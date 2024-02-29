@@ -94,7 +94,7 @@ st.write(f"In-Sample Period: From {in_sample_start_month} to {in_sample_end_mont
 st.write(f"Out-of-Sample Period (Forecasting period): From {out_sample_start_month} to {out_sample_end_month}")
 
 # Function call to forecast SPX values
-forecasts = forecast_SPX(df, in_sample_start_month, out_sample_end_month, out_sample_end_month)
+forecasts = forecast_SPX(df, in_sample_start_month, in_sample_end_month, out_sample_end_month)
 
 # Prepare data for plotting
 forecast_dates = [forecast[0].to_timestamp() for forecast in forecasts]
