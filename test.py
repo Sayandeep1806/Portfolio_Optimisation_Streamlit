@@ -110,7 +110,7 @@ forecast_df['Upper_Bound'] = forecast_df['Forecasted_SPX'] + 100  # Adjust upper
 forecast_df['Lower_Bound'] = forecast_df['Forecasted_SPX'] - 100  # Adjust lower bound as needed
 
 # Plotting the results
-fig = px.line(df, x='Period', y='SPX', title='Actual SPX Values vs Forecasted SPX Values with Bounds')
+fig = px.line(df, x='Date', y='SPX', title='Actual SPX Values vs Forecasted SPX Values with Bounds')
 
 # Add forecasted values and bounds as shaded area
 fig.add_scatter(x=forecast_df['Date'], y=forecast_df['Forecasted_SPX'], mode='lines', line=dict(color='red'), name='Forecasted SPX')
