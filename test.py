@@ -104,6 +104,9 @@ forecast_values = [forecast[1] for forecast in forecasts]
 actual_dates = df['Date']
 actual_values = df['SPX']
 
+# Filter data for plotting
+filtered_df = df[(df['Date'] >= pd.Timestamp(in_sample_start_month.to_timestamp())) & (df['Date'] <= pd.Timestamp(out_sample_end_month.to_timestamp()))]
+
 # Create DataFrame for plotting upper and lower bounds
 forecast_df = pd.DataFrame({
     'Date': forecast_dates,
@@ -114,7 +117,7 @@ forecast_df['Upper_Bound'] = forecast_df['Forecasted_SPX'] + 100  # Adjust upper
 forecast_df['Lower_Bound'] = forecast_df['Forecasted_SPX'] - 100  # Adjust lower bound as needed
 
 # Plotting the results
-fig = px.line(df, x='Date', y='SPX', title='Actual SPX Values vs Forecasted SPX Values')
+fig = px.line(filtered_df, x='Date', y='SPX', title='Actual SPX Values vs Forecasted SPX Values')
 
 # Add forecasted values and bounds as shaded area
 fig.add_scatter(x=forecast_df['Date'], y=forecast_df['Forecasted_SPX'], mode='lines', line=dict(color='red'), name='Forecasted SPX')
@@ -131,4 +134,3 @@ fig.add_trace(go.Scatter(
 fig.add_trace(go.Scatter(x=actual_dates, y=actual_values, mode='lines', name='Actual SPX', line=dict(color='blue')))
 
 st.plotly_chart(fig)
-
