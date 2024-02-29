@@ -154,16 +154,16 @@ df['Actual_Excess_Return_SPX'] = df['Actual_Returns_SPX'] - df['GS1M_Returns']
 df['Forecasted_Excess_Return_SPX'] = df['Forecasted_Returns_SPX'] - df['GS1M_Returns']
 
 # Plotting the results
-fig = px.line(df, x='Date', y=['Actual_Excess_Return_SPX', 'Forecasted_Excess_Return_SPX'], title='Actual vs Forecasted Excess Returns on SPX')
-st.plotly_chart(fig)
+fig_1 = px.line(df[df['Date'].isin([forecast[0].to_timestamp() for forecast in forecasts])], x='Date', y=['Actual_Excess_Return_SPX', 'Forecasted_Excess_Return_SPX'], title='Actual vs Forecasted Excess Returns on SPX')
+st.plotly_chart(fig_1)
 
 # Create DataFrame for table
-table_data = {
-    'Date': df['Date'],
-    'Actual_Excess_Return_SPX': df['Actual_Excess_Return_SPX'],
-    'Forecasted_Excess_Return_SPX': df['Forecasted_Excess_Return_SPX']
+table_data_1 = {
+    'Date': [forecast[0].to_timestamp() for forecast in forecasts],
+    'Actual_Excess_Return_SPX': df[df['Date'].isin([forecast[0].to_timestamp() for forecast in forecasts])]['Actual_Excess_Return_SPX'].values,
+    'Forecasted_Excess_Return_SPX': df[df['Date'].isin([forecast[0].to_timestamp() for forecast in forecasts])]['Forecasted_Excess_Return_SPX'].values
 }
 
 # Display table
 st.write("## Excess Returns on SPX")
-st.dataframe(pd.DataFrame(table_data))
+st.dataframe(pd.DataFrame(table_data_1))
