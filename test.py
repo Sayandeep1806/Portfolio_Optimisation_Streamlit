@@ -72,6 +72,7 @@ st.title('Portfolio Optimisation Tool')
 # Ask the user to enter the risk aversion
 st.write("## Select User Risk Appetite")
 risk_aversion = st.slider("Risk Aversion (γ)",min_value=0.1, max_value=10.0, step=0.1, value=2.0)
+risk_aversion_factor = risk_aversion / 10  # Normalize risk aversion to a scale of 0-1
 
 # Find min and max months
 min_month = df['Date'].dt.to_period('M').min()
@@ -142,17 +143,17 @@ fig.add_trace(go.Scatter(x=actual_dates, y=actual_values, mode='lines', name='Ac
 
 st.plotly_chart(fig)
 
-# # Calculating returns
-# forecast_df['Actual_SPX_Returns'] = np.log(forecast_df['Actual_SPX'] / forecast_df['Actual_SPX'].shift(1))
-# forecast_df['Forecasted_SPX_Returns'] = np.log(forecast_df['Forecasted_SPX'] / forecast_df['Forecasted_SPX'].shift(1))
-# # Replacing the first 'NaN' values of Actual and Forecasted returns using the last SPX value of the in-sample data
-# forecast_df['Actual_SPX_Returns'][0] = np.log(forecast_df['Actual_SPX'].iloc[0] /filtered_df['SPX'].iloc[-1])
-# forecast_df['Forecasted_SPX_Returns'][0] = np.log(forecast_df['Forecasted_SPX'].iloc[0] /filtered_df['SPX'].iloc[-1])
+# Calculating returns
+forecast_df['Actual_SPX_Returns'] = np.log(forecast_df['Actual_SPX'] / forecast_df['Actual_SPX'].shift(1))
+forecast_df['Forecasted_SPX_Returns'] = np.log(forecast_df['Forecasted_SPX'] / forecast_df['Forecasted_SPX'].shift(1))
+# Replacing the first 'NaN' values of Actual and Forecasted returns using the last SPX value of the in-sample data
+forecast_df['Actual_SPX_Returns'][0] = np.log(forecast_df['Actual_SPX'].iloc[0] /filtered_df['SPX'].iloc[-1])
+forecast_df['Forecasted_SPX_Returns'][0] = np.log(forecast_df['Forecasted_SPX'].iloc[0] /filtered_df['SPX'].iloc[-1])
 
-# # Plot Actual and Forecasted Excess Returns on SPX
-# fig_returns = go.Figure()
-# fig_returns.add_trace(go.Scatter(x=forecast_df['Date'], y=forecast_df['Actual_SPX_Returns'], mode='lines', name='Actual SPX Returns'))
-# fig_returns.add_trace(go.Scatter(x=forecast_df['Date'], y=forecast_df['Forecasted_SPX_Returns'], mode='lines', name='Forecasted SPX Returns'))
-# fig_returns.add_trace(go.Scatter(x=forecast_df['Date'], y=forecast_df['GS1M_Monthly_Returns'], mode='lines', name='GS1M Monthly Returns'))
-# fig_returns.update_layout(title='Actual vs Forecasted Returns on SPX vs Govt. Returns', xaxis_title='Date', yaxis_title='Excess Returns')
-# st.plotly_chart(fig_returns)
+# Plot Actual and Forecasted Excess Returns on SPX
+fig_returns = go.Figure()
+fig_returns.add_trace(go.Scatter(x=forecast_df['Date'], y=forecast_df['Actual_SPX_Returns'], mode='lines', name='Actual SPX Returns'))
+fig_returns.add_trace(go.Scatter(x=forecast_df['Date'], y=forecast_df['Forecasted_SPX_Returns'], mode='lines', name='Forecasted SPX Returns'))
+fig_returns.add_trace(go.Scatter(x=forecast_df['Date'], y=forecast_df['GS1M_Monthly_Returns'], mode='lines', name='GS1M Monthly Returns'))
+fig_returns.update_layout(title='Actual vs Forecasted Returns on SPX vs Govt. Returns', xaxis_title='Date', yaxis_title='Excess Returns')
+st.plotly_chart(fig_returns)
