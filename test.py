@@ -165,15 +165,43 @@ st.plotly_chart(fig_returns)
 
 # Calculate variance on the forecasted data
 mean_of_actual_excess_returns = forecast_df['Actual_Excess_Returns'].mean()
-#forecast_df['Variance_in_Excess_Returns'] =  (forecast_df['Forecasted_Excess_Returns']-mean_of_actual_excess_returns)**2
 forecast_df['Variance_in_Excess_Returns'] =  (forecast_df['Forecasted_Excess_Returns']-mean_of_actual_excess_returns)**2
 
-# Calculate weight to be assigned to the broad stock index (SPX) based on the forecasted data
-forecast_df['Weight_allocation'] = (1/risk_aversion)*(forecast_df['Forecasted_Excess_Returns']/forecast_df['Variance_in_Excess_Returns'])
 
 # Display the data in tabular format
 st.write("## Analysis of Actual vs Estimated data for the Forecasted Period")
 st.dataframe(forecast_df[['Date','Actual_SPX','Forecasted_SPX','Actual_Returns','Forecasted_Returns',
                           'GS1M','GS1M_Monthly_Returns','Actual_Excess_Returns','Forecasted_Excess_Returns',
-                          'Variance_in_Excess_Returns','Weight_allocation']])
+                          'Variance_in_Excess_Returns']])
+
+# Initialize lists to store optimal weights and Sharpe ratios for each forecasted month
+optimal_weights = []
+sharpe_ratios = []
+
+# Iterate over each forecasted month
+for index, row in forecast_df.iterrows():
+    # Calculate weight based on the formula
+    weight_spx = (1 / risk_aversion) * (row['Forecasted_Excess_Returns'] / row['Variance_in_Excess_Returns'])
+    weight_govt = 1 - weight_spx  # Since it's a two-asset portfolio
+    
+    # Append the optimal weights to the list
+    optimal_weights.append((weight_spx, weight_govt))
+    
+    # Calculate portfolio return and portfolio variance
+    portfolio_return = weight_spx * row['Forecasted_Excess_Returns'] + weight_govt * row['GS1M_Monthly_Returns']
+    portfolio_variance = weight_spx**2 * row['Variance_in_Excess_Returns'] + weight_govt**2 * row['GS1M_Monthly_Returns']**2
+    
+    # Calculate Sharpe ratio
+    sharpe_ratio = portfolio_return / np.sqrt(portfolio_variance)
+    sharpe_ratios.append(sharpe_ratio)
+
+# Add optimal weights and Sharpe ratios to the DataFrame
+forecast_df['Optimal_Weight_SPX'] = [weight[0] for weight in optimal_weights]
+forecast_df['Optimal_Weight_Govt'] = [weight[1] for weight in optimal_weights]
+forecast_df['Sharpe_Ratio'] = sharpe_ratios
+
+# Display the DataFrame with optimal weights and Sharpe ratios
+st.write("## Forecasted Optimal Portfolio Weights and Sharpe Ratios")
+st.dataframe(forecast_df[['Date', 'Forecasted_SPX', 'Forecasted_Excess_Returns', 'GS1M_Monthly_Returns', 'Variance_in_Excess_Returns', 'Optimal_Weight_SPX', 'Optimal_Weight_Govt', 'Sharpe_Ratio']])
+						  
                                                                    
