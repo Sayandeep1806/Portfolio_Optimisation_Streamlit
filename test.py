@@ -124,15 +124,15 @@ forecast_df['Upper_Bound'] = forecast_df['Forecasted_SPX'] + 100  # Adjust upper
 forecast_df['Lower_Bound'] = forecast_df['Forecasted_SPX'] - 100  # Adjust lower bound as needed
 
 # Calculating returns
-forecast_df['Actual_Returns'] = np.log(forecast_df['Actual_SPX'] / forecast_df['Actual_SPX'].shift(1))
-forecast_df['Forecasted_Returns'] = np.log(forecast_df['Forecasted_SPX'] / forecast_df['Forecasted_SPX'].shift(1))
-# Replacing the first 'NaN' values of Actual and Forecasted returns with the mean of the actual returns
-forecast_df['Actual_Returns'][0] = forecast_df['Actual_Returns'][1:].mean()
-forecast_df['Forecasted_Returns'][0] = forecast_df['Forecasted_Returns'][1:].mean()
+forecast_df['Actual_SPX_Returns'] = np.log(forecast_df['Actual_SPX'] / forecast_df['Actual_SPX'].shift(1))
+forecast_df['Forecasted_SPX_Returns'] = np.log(forecast_df['Forecasted_SPX'] / forecast_df['Forecasted_SPX'].shift(1))
+# Replacing the first 'NaN' values of Actual and Forecasted returns using the last SPX value of the in-sample data
+forecast_df['Actual_SPX_Returns'][0] = np.log(forecast_df['Actual_SPX'] / filtered_df['SPX'][-1])
+forecast_df['Forecasted_SPX_Returns'][0] = np.log(forecast_df['Forecasted_SPX'] / filtered_df['SPX'][-1])
 
-# Calculating excess returns
-forecast_df['Actual_Excess_Returns'] = forecast_df['Actual_Returns'] - forecast_df['GS1M_Monthly_Returns']
-forecast_df['Forecasted_Excess_Returns'] = forecast_df['Forecasted_Returns'] - forecast_df['GS1M_Monthly_Returns']
+## Calculating excess returns
+#forecast_df['Actual_Excess_Returns'] = forecast_df['Actual_Returns'] - forecast_df['GS1M_Monthly_Returns']
+#forecast_df['Forecasted_Excess_Returns'] = forecast_df['Forecasted_Returns'] - forecast_df['GS1M_Monthly_Returns']
 
 # Analysis of the data
 st.write("## Analysis")
@@ -158,50 +158,8 @@ st.plotly_chart(fig)
 
 # Plot Actual and Forecasted Excess Returns on SPX
 fig_returns = go.Figure()
-fig_returns.add_trace(go.Scatter(x=forecast_df['Date'], y=forecast_df['Actual_Excess_Returns'], mode='lines', name='Actual Excess Returns'))
-fig_returns.add_trace(go.Scatter(x=forecast_df['Date'], y=forecast_df['Forecasted_Excess_Returns'], mode='lines', name='Forecasted Excess Returns'))
-fig_returns.update_layout(title='Actual vs Forecasted Excess Returns on SPX', xaxis_title='Date', yaxis_title='Excess Returns')
+fig_returns.add_trace(go.Scatter(x=forecast_df['Date'], y=forecast_df['Actual_SPX_Returns'], mode='lines', name='Actual SPX Returns'))
+fig_returns.add_trace(go.Scatter(x=forecast_df['Date'], y=forecast_df['Forecasted_SPX_Returns'], mode='lines', name='Forecasted SPX Returns'))
+fig_returns.add_trace(go.Scatter(x=forecast_df['Date'], y=forecast_df['GS1M_Monthly_Returns'], mode='lines', name='GS1M Monthly Returns'))
+fig_returns.update_layout(title='Actual vs Forecasted Returns on SPX vs Govt. Returns', xaxis_title='Date', yaxis_title='Excess Returns')
 st.plotly_chart(fig_returns)
-
-# Calculate variance on the forecasted data
-mean_of_actual_excess_returns = forecast_df['Actual_Excess_Returns'].mean()
-forecast_df['Variance_in_Excess_Returns'] =  (forecast_df['Forecasted_Excess_Returns']-mean_of_actual_excess_returns)**2
-
-
-# Display the data in tabular format
-st.write("## Analysis of Actual vs Estimated data for the Forecasted Period")
-st.dataframe(forecast_df[['Date','Actual_SPX','Forecasted_SPX','Actual_Returns','Forecasted_Returns',
-                          'GS1M','GS1M_Monthly_Returns','Actual_Excess_Returns','Forecasted_Excess_Returns',
-                          'Variance_in_Excess_Returns']])
-
-# Initialize lists to store optimal weights and Sharpe ratios for each forecasted month
-optimal_weights = []
-sharpe_ratios = []
-
-# Iterate over each forecasted month
-for index, row in forecast_df.iterrows():
-    # Calculate weight based on the formula
-    weight_spx = (1 / risk_aversion) * (row['Forecasted_Excess_Returns'] / row['Variance_in_Excess_Returns'])
-    weight_govt = 1 - weight_spx  # Since it's a two-asset portfolio
-    
-    # Append the optimal weights to the list
-    optimal_weights.append((weight_spx, weight_govt))
-    
-    # Calculate portfolio return and portfolio variance
-    portfolio_return = weight_spx * row['Forecasted_Excess_Returns'] + weight_govt * row['GS1M_Monthly_Returns']
-    portfolio_variance = weight_spx**2 * row['Variance_in_Excess_Returns'] + weight_govt**2 * row['GS1M_Monthly_Returns']**2
-    
-    # Calculate Sharpe ratio
-    sharpe_ratio = portfolio_return / np.sqrt(portfolio_variance)
-    sharpe_ratios.append(sharpe_ratio)
-
-# Add optimal weights and Sharpe ratios to the DataFrame
-forecast_df['Optimal_Weight_SPX'] = [weight[0] for weight in optimal_weights]
-forecast_df['Optimal_Weight_Govt'] = [weight[1] for weight in optimal_weights]
-forecast_df['Sharpe_Ratio'] = sharpe_ratios
-
-# Display the DataFrame with optimal weights and Sharpe ratios
-st.write("## Forecasted Optimal Portfolio Weights and Sharpe Ratios")
-st.dataframe(forecast_df[['Date', 'Forecasted_SPX', 'Forecasted_Excess_Returns', 'GS1M_Monthly_Returns', 'Variance_in_Excess_Returns', 'Optimal_Weight_SPX', 'Optimal_Weight_Govt', 'Sharpe_Ratio']])
-						  
-                                                                   
