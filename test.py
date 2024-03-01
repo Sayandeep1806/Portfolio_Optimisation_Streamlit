@@ -127,15 +127,8 @@ forecast_df['Lower_Bound'] = forecast_df['Forecasted_SPX'] - 100  # Adjust lower
 forecast_df['Actual_SPX_Returns'] = np.log(forecast_df['Actual_SPX'] / forecast_df['Actual_SPX'].shift(1))
 forecast_df['Forecasted_SPX_Returns'] = np.log(forecast_df['Forecasted_SPX'] / forecast_df['Forecasted_SPX'].shift(1))
 # Replacing the first 'NaN' values of Actual and Forecasted returns using the last SPX value of the in-sample data
-forecast_df['Actual_SPX_Returns'][0] = np.log(forecast_df['Actual_SPX'] / filtered_df['SPX'][-1])
-forecast_df['Forecasted_SPX_Returns'][0] = np.log(forecast_df['Forecasted_SPX'] / filtered_df['SPX'][-1])
-
-## Calculating excess returns
-#forecast_df['Actual_Excess_Returns'] = forecast_df['Actual_Returns'] - forecast_df['GS1M_Monthly_Returns']
-#forecast_df['Forecasted_Excess_Returns'] = forecast_df['Forecasted_Returns'] - forecast_df['GS1M_Monthly_Returns']
-
-# Analysis of the data
-st.write("## Analysis")
+forecast_df['Actual_SPX_Returns'][0] = np.log(forecast_df['Actual_SPX'][0] / filtered_df['SPX'][-1])
+forecast_df['Forecasted_SPX_Returns'][0] = np.log(forecast_df['Forecasted_SPX'][0] / filtered_df['SPX'][-1])
 
 # Plotting the results
 fig = px.line(filtered_df, x='Date', y='SPX', title='Actual SPX Values vs Forecasted SPX Values')
