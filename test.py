@@ -123,13 +123,6 @@ forecast_df = pd.DataFrame({
 forecast_df['Upper_Bound'] = forecast_df['Forecasted_SPX'] + 100  # Adjust upper bound as needed
 forecast_df['Lower_Bound'] = forecast_df['Forecasted_SPX'] - 100  # Adjust lower bound as needed
 
-# Calculating returns
-forecast_df['Actual_SPX_Returns'] = np.log(forecast_df['Actual_SPX'] / forecast_df['Actual_SPX'].shift(1))
-forecast_df['Forecasted_SPX_Returns'] = np.log(forecast_df['Forecasted_SPX'] / forecast_df['Forecasted_SPX'].shift(1))
-# Replacing the first 'NaN' values of Actual and Forecasted returns using the last SPX value of the in-sample data
-forecast_df['Actual_SPX_Returns'][0] = np.log(forecast_df['Actual_SPX'].iloc[0] /filtered_df['SPX'].iloc[-1])
-forecast_df['Forecasted_SPX_Returns'][0] = np.log(forecast_df['Forecasted_SPX'].iloc[0] /filtered_df['SPX'].iloc[-1])
-
 # Plotting the results
 fig = px.line(filtered_df, x='Date', y='SPX', title='Actual SPX Values vs Forecasted SPX Values')
 
@@ -149,10 +142,17 @@ fig.add_trace(go.Scatter(x=actual_dates, y=actual_values, mode='lines', name='Ac
 
 st.plotly_chart(fig)
 
-# Plot Actual and Forecasted Excess Returns on SPX
-fig_returns = go.Figure()
-fig_returns.add_trace(go.Scatter(x=forecast_df['Date'], y=forecast_df['Actual_SPX_Returns'], mode='lines', name='Actual SPX Returns'))
-fig_returns.add_trace(go.Scatter(x=forecast_df['Date'], y=forecast_df['Forecasted_SPX_Returns'], mode='lines', name='Forecasted SPX Returns'))
-fig_returns.add_trace(go.Scatter(x=forecast_df['Date'], y=forecast_df['GS1M_Monthly_Returns'], mode='lines', name='GS1M Monthly Returns'))
-fig_returns.update_layout(title='Actual vs Forecasted Returns on SPX vs Govt. Returns', xaxis_title='Date', yaxis_title='Excess Returns')
-st.plotly_chart(fig_returns)
+# # Calculating returns
+# forecast_df['Actual_SPX_Returns'] = np.log(forecast_df['Actual_SPX'] / forecast_df['Actual_SPX'].shift(1))
+# forecast_df['Forecasted_SPX_Returns'] = np.log(forecast_df['Forecasted_SPX'] / forecast_df['Forecasted_SPX'].shift(1))
+# # Replacing the first 'NaN' values of Actual and Forecasted returns using the last SPX value of the in-sample data
+# forecast_df['Actual_SPX_Returns'][0] = np.log(forecast_df['Actual_SPX'].iloc[0] /filtered_df['SPX'].iloc[-1])
+# forecast_df['Forecasted_SPX_Returns'][0] = np.log(forecast_df['Forecasted_SPX'].iloc[0] /filtered_df['SPX'].iloc[-1])
+
+# # Plot Actual and Forecasted Excess Returns on SPX
+# fig_returns = go.Figure()
+# fig_returns.add_trace(go.Scatter(x=forecast_df['Date'], y=forecast_df['Actual_SPX_Returns'], mode='lines', name='Actual SPX Returns'))
+# fig_returns.add_trace(go.Scatter(x=forecast_df['Date'], y=forecast_df['Forecasted_SPX_Returns'], mode='lines', name='Forecasted SPX Returns'))
+# fig_returns.add_trace(go.Scatter(x=forecast_df['Date'], y=forecast_df['GS1M_Monthly_Returns'], mode='lines', name='GS1M Monthly Returns'))
+# fig_returns.update_layout(title='Actual vs Forecasted Returns on SPX vs Govt. Returns', xaxis_title='Date', yaxis_title='Excess Returns')
+# st.plotly_chart(fig_returns)
