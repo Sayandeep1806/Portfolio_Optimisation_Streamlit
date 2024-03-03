@@ -212,7 +212,7 @@ forecast_df = forecast_df.rename(columns = {'Date':'Date',
 
 # Display the data in tabular format
 st.write("## Portfolio Performance Evaluation Data")
-st.dataframe(forecast_df[['Date','Actual SPX','Forecasted SPX','Actual Returns','Forecasted Returns','US Treasury Returns',
+st.dataframe(forecast_df[['Date','Actual SPX','Forecasted SPX','Actual SPX Returns','Forecasted SPX Returns','US Treasury Returns',
                           'Actual risk adjusted weights for SPX (out of 100)','Forecasted risk adjusted weights for SPX (out of 100)',
                           'Actual portfolio returns','Forecasted portfolio returns',
                           'Actual returns volatility','Forecasted returns volatility']])
