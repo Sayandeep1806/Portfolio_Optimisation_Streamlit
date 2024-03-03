@@ -72,7 +72,7 @@ st.title('Portfolio Optimisation Tool')
 # Ask the user to enter the risk aversion
 st.write("## Select User Risk Appetite")
 risk_aversion = st.slider("Risk Aversion (γ)",min_value=0.1, max_value=10.0, step=0.1, value=2.0)
-risk_aversion_factor = risk_aversion / 10  # Normalize risk aversion to a scale of 0-1
+
 
 # Find min and max months
 min_month = df['Date'].dt.to_period('M').min()
@@ -110,6 +110,8 @@ actual_values = df['SPX']
 
 # Filter data for plotting
 filtered_df = df[(df['Date'] >= pd.Timestamp(in_sample_start_month.to_timestamp())) & (df['Date'] <= pd.Timestamp(out_sample_end_month.to_timestamp()))]
+
+
 
 # Create DataFrame for plotting upper and lower bounds
 forecast_df = pd.DataFrame({
@@ -157,3 +159,60 @@ fig_returns.add_trace(go.Scatter(x=forecast_df['Date'], y=forecast_df['Forecaste
 fig_returns.add_trace(go.Scatter(x=forecast_df['Date'], y=forecast_df['GS1M_Monthly_Returns'], mode='lines', name='GS1M Monthly Returns'))
 fig_returns.update_layout(title='Actual vs Forecasted Returns on SPX vs Govt. Returns', xaxis_title='Date', yaxis_title='Excess Returns')
 st.plotly_chart(fig_returns)
+
+# Calculating excess returns	
+forecast_df['Actual_SPX_Excess_Returns'] = forecast_df['Actual_SPX_Returns'] - forecast_df['GS1M_Monthly_Returns']
+forecast_df['Forecasted_SPX_Excess_Returns'] = forecast_df['Forecasted_SPX_Returns'] - forecast_df['GS1M_Monthly_Returns']
+
+# Calculating Variance
+mean_of_SPX_returns = np.log(filtered_df['SPX'] / filtered_df['SPX'].shift(1)).mean()    # Finding mean of actual SPX returns   
+forecast_df['Actual_SPX_Variance'] = (forecast_df['Actual_SPX_Excess_Returns']- mean_of_SPX_returns) ** 2 
+forecast_df['Forecasted_SPX_Variance'] = (forecast_df['Forecasted_SPX_Excess_Returns']- mean_of_SPX_returns) ** 2 
+
+# Finding weights for SPX
+def assign_weight(ER,Var):
+    if ER<=0:
+        return 0
+    else:
+        wt = ER/Var
+        return max(0, min(wt, 100))
+
+forecast_df['initial_weights_actual'] = forecast_df.apply(lambda row: assign_weight(row['Actual_SPX_Excess_Returns'], row['Actual_SPX_Variance']), axis=1)
+forecast_df['initial_weights_forecasted'] = forecast_df.apply(lambda row: assign_weight(row['Forecasted_SPX_Excess_Returns'], row['Forecasted_SPX_Variance']), axis=1)
+
+forecast_df['risk_adjusted_weights_actual'] = forecast_df['initial_weights_actual']/risk_aversion
+forecast_df['risk_adjusted_weights_forecasted'] = forecast_df['initial_weights_forecasted']/risk_aversion
+
+# Finding Portfolio Returns over the out-of-sample period 
+forecast_df['portfolio_returns_actual'] = ((forecast_df['risk_adjusted_weights_actual']*forecast_df['Actual_SPX_Returns'])
+                                           + ((100-forecast_df['risk_adjusted_weights_actual'])*forecast_df['GS1M_Monthly_Returns']))/100
+forecast_df['portfolio_returns_forecasted'] = ((forecast_df['risk_adjusted_weights_forecasted']*forecast_df['Forecasted_SPX_Returns'])
+                                           + ((100-forecast_df['risk_adjusted_weights_forecasted'])*forecast_df['GS1M_Monthly_Returns']))/100
+                                           
+# Finding the volatility
+forecast_df['volatility_actual_returns'] = forecast_df['portfolio_returns_actual'].std()
+forecast_df['volatility_forecasted_returns'] = forecast_df['portfolio_returns_forecasted'].std()  
+                                
+# Plot Actual and Forecasted portfolio returns
+fig_returns_port = go.Figure()
+fig_returns_port.add_trace(go.Scatter(x=forecast_df['Date'], y=forecast_df['portfolio_returns_actual'], mode='lines', name='Actual Portfolio Returns'))
+fig_returns_port.add_trace(go.Scatter(x=forecast_df['Date'], y=forecast_df['portfolio_returns_forecasted'], mode='lines', name='Forecasted Portfolio Returns'))
+fig_returns_port.add_trace(go.Scatter(x=forecast_df['Date'], y=forecast_df['GS1M_Monthly_Returns'], mode='lines', name='US Treasury Returns'))
+fig_returns_port.update_layout(title='Actual vs Forecasted Returns on Portfolio vs US Treasury Returns', xaxis_title='Date', yaxis_title='Excess Returns')
+st.plotly_chart(fig_returns_port)
+
+# Renaming columns
+forecast_df.rename(columns = {'Date':'Date',
+                              'Actual_SPX':'Actual SPX','Forecasted_SPX':'Forecasted SPX',
+                              'Actual_Returns':'Actual Returns','Forecasted_Returns':'Forecasted_Returns',
+                              'GS1M_Monthly_Returns':'US Treasury Returns',
+                              'risk_adjusted_weights_actual':'Actual risk adjusted weights for SPX (out of 100)','risk_adjusted_weights_forecasted':'Forecasted risk adjusted weights for SPX (out of 100)',
+                              'portfolio_returns_actual':'Actual portfolio returns','portfolio_returns_forecasted':'Forecasted portfolio returns',
+                              'volatility_actual_returns':'Actual returns volatility','volatility_forecasted_returns':'Foreacsted returns volatility'}, inplace = True)
+
+# Display the data in tabular format
+st.write("## Portfolio Performance Evaluation Data")
+st.dataframe(forecast_df[['Date','Actual SPX','Forecasted SPX','Actual Returns','Forecasted_Returns','US Treasury Returns',
+                          'Actual risk adjusted weights for SPX (out of 100)','Forecasted risk adjusted weights for SPX (out of 100)',
+                          'Actual portfolio returns','Forecasted portfolio returns',
+                          'Actual returns volatility','Foreacsted returns volatility']])
