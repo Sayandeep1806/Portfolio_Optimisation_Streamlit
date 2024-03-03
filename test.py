@@ -157,7 +157,7 @@ fig_returns = go.Figure()
 fig_returns.add_trace(go.Scatter(x=forecast_df['Date'], y=forecast_df['Actual_SPX_Returns'], mode='lines', name='Actual SPX Returns'))
 fig_returns.add_trace(go.Scatter(x=forecast_df['Date'], y=forecast_df['Forecasted_SPX_Returns'], mode='lines', name='Forecasted SPX Returns'))
 fig_returns.add_trace(go.Scatter(x=forecast_df['Date'], y=forecast_df['GS1M_Monthly_Returns'], mode='lines', name='GS1M Monthly Returns'))
-fig_returns.update_layout(title='Actual vs Forecasted Returns on SPX vs Govt. Returns', xaxis_title='Date', yaxis_title='Excess Returns')
+fig_returns.update_layout(title='Actual vs Forecasted Returns on SPX vs Govt. Returns', xaxis_title='Period', yaxis_title='Excess Returns')
 st.plotly_chart(fig_returns)
 
 # Calculating excess returns	
@@ -198,7 +198,7 @@ fig_returns_port = go.Figure()
 fig_returns_port.add_trace(go.Scatter(x=forecast_df['Date'], y=forecast_df['portfolio_returns_actual'], mode='lines', name='Actual Portfolio Returns'))
 fig_returns_port.add_trace(go.Scatter(x=forecast_df['Date'], y=forecast_df['portfolio_returns_forecasted'], mode='lines', name='Forecasted Portfolio Returns'))
 fig_returns_port.add_trace(go.Scatter(x=forecast_df['Date'], y=forecast_df['GS1M_Monthly_Returns'], mode='lines', name='US Treasury Returns'))
-fig_returns_port.update_layout(title='Actual vs Forecasted Returns on Portfolio vs US Treasury Returns', xaxis_title='Date', yaxis_title='Excess Returns')
+fig_returns_port.update_layout(title='Actual vs Forecasted Returns on Portfolio vs US Treasury Returns', xaxis_title='Period', yaxis_title='Portfolio Returns')
 st.plotly_chart(fig_returns_port)
 
 # Renaming columns
