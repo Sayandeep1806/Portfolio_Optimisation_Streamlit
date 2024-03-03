@@ -71,7 +71,7 @@ st.title('Portfolio Optimisation Tool')
 
 # Ask the user to enter the risk aversion
 st.write("## Select User Risk Appetite")
-risk_aversion = st.slider("### Risk Aversion (γ): Maximum Risk Taking - Maximum Risk Aversion",min_value=1.0, max_value=10.0, step=0.1, value=2.0)
+risk_aversion = st.slider("### Risk Aversion (γ):  Maximum Risk Taking <-------> Maximum Risk Aversion",min_value=1.0, max_value=10.0, step=0.1, value=2.0)
 st.write("Risk Aversion (γ) = ", risk_aversion)
 
 # Find min and max months
