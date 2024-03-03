@@ -204,15 +204,15 @@ st.plotly_chart(fig_returns_port)
 # Renaming columns
 forecast_df.rename(columns = {'Date':'Date',
                               'Actual_SPX':'Actual SPX','Forecasted_SPX':'Forecasted SPX',
-                              'Actual_Returns':'Actual Returns','Forecasted_Returns':'Forecasted_Returns',
+                              'Actual_Returns':'Actual Returns','Forecasted_Returns':'Forecasted Returns',
                               'GS1M_Monthly_Returns':'US Treasury Returns',
                               'risk_adjusted_weights_actual':'Actual risk adjusted weights for SPX (out of 100)','risk_adjusted_weights_forecasted':'Forecasted risk adjusted weights for SPX (out of 100)',
                               'portfolio_returns_actual':'Actual portfolio returns','portfolio_returns_forecasted':'Forecasted portfolio returns',
-                              'volatility_actual_returns':'Actual returns volatility','volatility_forecasted_returns':'Foreacsted returns volatility'}, inplace = True)
+                              'volatility_actual_returns':'Actual returns volatility','volatility_forecasted_returns':'Forecasted returns volatility'}, inplace = True)
 
 # Display the data in tabular format
 st.write("## Portfolio Performance Evaluation Data")
-st.dataframe(forecast_df[['Date','Actual SPX','Forecasted SPX','Actual Returns','Forecasted_Returns','US Treasury Returns',
+st.dataframe(forecast_df[['Date','Actual SPX','Forecasted SPX','Actual Returns','Forecasted Returns','US Treasury Returns',
                           'Actual risk adjusted weights for SPX (out of 100)','Forecasted risk adjusted weights for SPX (out of 100)',
                           'Actual portfolio returns','Forecasted portfolio returns',
-                          'Actual returns volatility','Foreacsted returns volatility']])
+                          'Actual returns volatility','Forecasted returns volatility']])
