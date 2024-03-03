@@ -111,8 +111,6 @@ actual_values = df['SPX']
 # Filter data for plotting
 filtered_df = df[(df['Date'] >= pd.Timestamp(in_sample_start_month.to_timestamp())) & (df['Date'] <= pd.Timestamp(out_sample_end_month.to_timestamp()))]
 
-
-
 # Create DataFrame for plotting upper and lower bounds
 forecast_df = pd.DataFrame({
     'Date': forecast_dates,
@@ -145,12 +143,16 @@ fig.add_trace(go.Scatter(x=actual_dates, y=actual_values, mode='lines', name='Ac
 
 st.plotly_chart(fig)
 
+# Finding in-sample data
+insample_df = df[(df['Date'] >= pd.Timestamp(in_sample_start_month.to_timestamp())) 
+                 & (df['Date'] <= pd.Timestamp(in_sample_end_month.to_timestamp()))]
+
 # Calculating returns
 forecast_df['Actual_SPX_Returns'] = np.log(forecast_df['Actual_SPX'] / forecast_df['Actual_SPX'].shift(1))
 forecast_df['Forecasted_SPX_Returns'] = np.log(forecast_df['Forecasted_SPX'] / forecast_df['Forecasted_SPX'].shift(1))
 # Replacing the first 'NaN' values of Actual and Forecasted returns using the last SPX value of the in-sample data
-forecast_df['Actual_SPX_Returns'][0] = np.log(forecast_df['Actual_SPX'].iloc[0] /filtered_df['SPX'].iloc[-1])
-forecast_df['Forecasted_SPX_Returns'][0] = np.log(forecast_df['Forecasted_SPX'].iloc[0] /filtered_df['SPX'].iloc[-1])
+forecast_df['Actual_SPX_Returns'][0] = np.log(forecast_df['Actual_SPX'].iloc[0] /filtered_df['SPX'].iloc[len(insample_df)])
+forecast_df['Forecasted_SPX_Returns'][0] = np.log(forecast_df['Forecasted_SPX'].iloc[0] /filtered_df['SPX'].iloc[len(insample_df)])
 
 # Plot Actual and Forecasted Excess Returns on SPX
 fig_returns = go.Figure()
