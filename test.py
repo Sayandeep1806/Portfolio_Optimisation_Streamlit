@@ -71,8 +71,8 @@ st.title('Portfolio Optimisation Tool')
 
 # Ask the user to enter the risk aversion
 st.write("## Select User Risk Appetite")
-risk_aversion = st.slider("Risk Aversion (γ)",min_value=0.1, max_value=10.0, step=0.1, value=2.0)
-
+risk_aversion = st.slider("####Risk Aversion (γ): 'Most Risk Taking' <------> 'Most Risk Averse' ",min_value=1, max_value=10.0, step=0.1, value=2.0)
+st.write("Risk Aversion (γ) = ", risk_aversion)
 
 # Find min and max months
 min_month = df['Date'].dt.to_period('M').min()
@@ -201,9 +201,12 @@ fig_returns_port.add_trace(go.Scatter(x=forecast_df['Date'], y=forecast_df['GS1M
 fig_returns_port.update_layout(title='Actual vs Forecasted Returns on Portfolio vs US Treasury Returns', xaxis_title='Period', yaxis_title='Portfolio Returns')
 st.plotly_chart(fig_returns_port)
 
+# Modifying the Date in dataframe
+forecast_df['Date'] = forecast_df['Date'].dt.date
+forecast_df = forecast_df.set_index("Date")
+
 # Renaming columns
-forecast_df = forecast_df.rename(columns = {'Date':'Date',
-                                            'Actual_SPX':'Actual SPX','Forecasted_SPX':'Forecasted SPX',
+forecast_df = forecast_df.rename(columns = {'Actual_SPX':'Actual SPX','Forecasted_SPX':'Forecasted SPX',
                                             'Actual_SPX_Returns':'Actual SPX Returns','Forecasted_SPX_Returns':'Forecasted SPX Returns',
                                             'GS1M_Monthly_Returns':'US Treasury Returns',
                                             'risk_adjusted_weights_actual':'Actual risk adjusted weights for SPX (out of 100)','risk_adjusted_weights_forecasted':'Forecasted risk adjusted weights for SPX (out of 100)',
@@ -212,7 +215,7 @@ forecast_df = forecast_df.rename(columns = {'Date':'Date',
 
 # Display the data in tabular format
 st.write("## Portfolio Performance Evaluation Data")
-st.dataframe(forecast_df[['Date','Actual SPX','Forecasted SPX','Actual SPX Returns','Forecasted SPX Returns','US Treasury Returns',
+st.dataframe(forecast_df[['Actual SPX','Forecasted SPX','Actual SPX Returns','Forecasted SPX Returns','US Treasury Returns',
                           'Actual risk adjusted weights for SPX (out of 100)','Forecasted risk adjusted weights for SPX (out of 100)',
                           'Actual portfolio returns','Forecasted portfolio returns',
                           'Actual returns volatility','Forecasted returns volatility']])
