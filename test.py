@@ -157,7 +157,7 @@ fig_returns = go.Figure()
 fig_returns.add_trace(go.Scatter(x=forecast_df['Date'], y=forecast_df['Actual_SPX_Returns'], mode='lines', name='Actual SPX Returns'))
 fig_returns.add_trace(go.Scatter(x=forecast_df['Date'], y=forecast_df['Forecasted_SPX_Returns'], mode='lines', name='Forecasted SPX Returns'))
 fig_returns.add_trace(go.Scatter(x=forecast_df['Date'], y=forecast_df['GS1M_Monthly_Returns'], mode='lines', name='GS1M Monthly Returns'))
-fig_returns.update_layout(title='Actual vs Forecasted Returns on SPX vs US Treasury Returns', xaxis_title='Period', yaxis_title='Excess Returns')
+fig_returns.update_layout(title='Actual vs Forecasted Returns on SPX vs US Treasury Returns', xaxis_title='Period', yaxis_title='Returns')
 st.plotly_chart(fig_returns)
 
 # Calculating excess returns	
