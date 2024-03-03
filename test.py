@@ -202,13 +202,13 @@ fig_returns_port.update_layout(title='Actual vs Forecasted Returns on Portfolio 
 st.plotly_chart(fig_returns_port)
 
 # Renaming columns
-forecast_df.rename(columns = {'Date':'Date',
-                              'Actual_SPX':'Actual SPX','Forecasted_SPX':'Forecasted SPX',
-                              'Actual_Returns':'Actual Returns','Forecasted_Returns':'Forecasted Returns',
-                              'GS1M_Monthly_Returns':'US Treasury Returns',
-                              'risk_adjusted_weights_actual':'Actual risk adjusted weights for SPX (out of 100)','risk_adjusted_weights_forecasted':'Forecasted risk adjusted weights for SPX (out of 100)',
-                              'portfolio_returns_actual':'Actual portfolio returns','portfolio_returns_forecasted':'Forecasted portfolio returns',
-                              'volatility_actual_returns':'Actual returns volatility','volatility_forecasted_returns':'Forecasted returns volatility'}, inplace = True)
+forecast_df = forecast_df.rename(columns = {'Date':'Date',
+                                            'Actual_SPX':'Actual SPX','Forecasted_SPX':'Forecasted SPX',
+                                            'Actual_Returns':'Actual Returns','Forecasted_Returns':'Forecasted Returns',
+                                            'GS1M_Monthly_Returns':'US Treasury Returns',
+                                            'risk_adjusted_weights_actual':'Actual risk adjusted weights for SPX (out of 100)','risk_adjusted_weights_forecasted':'Forecasted risk adjusted weights for SPX (out of 100)',
+                                            'portfolio_returns_actual':'Actual portfolio returns','portfolio_returns_forecasted':'Forecasted portfolio returns',
+                                            'volatility_actual_returns':'Actual returns volatility','volatility_forecasted_returns':'Forecasted returns volatility'})
 
 # Display the data in tabular format
 st.write("## Portfolio Performance Evaluation Data")
