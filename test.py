@@ -151,8 +151,8 @@ insample_df = df[(df['Date'] >= pd.Timestamp(in_sample_start_month.to_timestamp(
 forecast_df['Actual_SPX_Returns'] = np.log(forecast_df['Actual_SPX'] / forecast_df['Actual_SPX'].shift(1))
 forecast_df['Forecasted_SPX_Returns'] = np.log(forecast_df['Forecasted_SPX'] / forecast_df['Forecasted_SPX'].shift(1))
 # Replacing the first 'NaN' values of Actual and Forecasted returns using the last SPX value of the in-sample data
-forecast_df['Actual_SPX_Returns'][0] = np.log(forecast_df['Actual_SPX'].iloc[0] /filtered_df['SPX'].iloc[len(insample_df)])
-forecast_df['Forecasted_SPX_Returns'][0] = np.log(forecast_df['Forecasted_SPX'].iloc[0] /filtered_df['SPX'].iloc[len(insample_df)])
+forecast_df['Actual_SPX_Returns'][0] = np.log(forecast_df['Actual_SPX'].iloc[0] /insample_df['SPX'].iloc[len(insample_df)-1])
+forecast_df['Forecasted_SPX_Returns'][0] = np.log(forecast_df['Forecasted_SPX'].iloc[0] /insample_df['SPX'].iloc[len(insample_df)-1])
 
 # Plot Actual and Forecasted Excess Returns on SPX
 fig_returns = go.Figure()
