@@ -89,7 +89,7 @@ in_sample_end_month = st.sidebar.selectbox("Select end month for initial in-samp
 # User input for out-of-sample period end month
 st.sidebar.write("### Select Out-of-Sample Period")
 out_sample_start_month = in_sample_end_month + 1
-max_allowed_month = max_month + 1
+max_allowed_month = max_month
 out_sample_end_month = st.sidebar.selectbox("Select end month for forecasting period",
                                              options=pd.period_range(start=out_sample_start_month, end=max_allowed_month, freq='M'))
 
