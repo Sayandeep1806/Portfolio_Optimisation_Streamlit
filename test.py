@@ -192,8 +192,8 @@ forecast_df['portfolio_returns_forecasted'] = ((forecast_df['risk_adjusted_weigh
                                            + ((100-forecast_df['risk_adjusted_weights_forecasted'])*forecast_df['GS1M_Monthly_Returns']))/100
                                            
 # Finding the volatility
-forecast_df['volatility_actual_returns'] = forecast_df['portfolio_returns_actual'].std()
-forecast_df['volatility_forecasted_returns'] = forecast_df['portfolio_returns_forecasted'].std()  
+forecast_df['volatility_in_portfolio_returns'] = forecast_df['portfolio_returns_actual']-forecast_df['portfolio_returns_forecasted']
+
                                 
 # Plot Actual and Forecasted portfolio returns
 fig_returns_port = go.Figure()
@@ -213,11 +213,11 @@ forecast_df = forecast_df.rename(columns = {'Actual_SPX':'Actual SPX','Forecaste
                                             'GS1M_Monthly_Returns':'US Treasury Returns',
                                             'risk_adjusted_weights_actual':'Actual risk adjusted weights for SPX (out of 100)','risk_adjusted_weights_forecasted':'Forecasted risk adjusted weights for SPX (out of 100)',
                                             'portfolio_returns_actual':'Actual portfolio returns','portfolio_returns_forecasted':'Forecasted portfolio returns',
-                                            'volatility_actual_returns':'Actual returns volatility','volatility_forecasted_returns':'Forecasted returns volatility'})
+                                            'volatility_in_portfolio_returns':'Portfolio returns volatility (Actual-Forecasted)'})
 
 # Display the data in tabular format
 st.write("## Portfolio Performance Evaluation Data")
 st.dataframe(forecast_df[['Actual SPX','Forecasted SPX','Actual SPX Returns','Forecasted SPX Returns','US Treasury Returns',
                           'Actual risk adjusted weights for SPX (out of 100)','Forecasted risk adjusted weights for SPX (out of 100)',
                           'Actual portfolio returns','Forecasted portfolio returns',
-                          'Actual returns volatility','Forecasted returns volatility']])
+                          'Portfolio returns volatility (Actual-Forecasted)']])
