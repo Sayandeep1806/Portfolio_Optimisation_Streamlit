@@ -1,8 +1,8 @@
 streamlit
+PIL
 pandas
 numpy
 datetime
 statsmodels
-tensorflow
 matplotlib
 plotly
