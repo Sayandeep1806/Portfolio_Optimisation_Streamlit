@@ -1,4 +1,5 @@
 import streamlit as st
+from PIL import Image
 import pandas as pd
 import numpy as np
 from statsmodels.tsa.statespace.sarimax import SARIMAX
@@ -66,12 +67,16 @@ def forecast_SPX(spx_data, in_sample_start_month,in_sample_end_month, out_sample
     
     return forecasts
 
+# Logo
+img = Image.open("logo.png")
+st.image(img)
+                 
 # Streamlit app
 st.title('Portfolio Optimisation Tool')
 
 # Ask the user to enter the risk aversion
 st.write("## Select User Risk Appetite")
-risk_aversion = st.slider("### Risk Aversion (γ):  Maximum Risk Taking - Maximum Risk Aversion",min_value=1.0, max_value=10.0, step=0.1, value=2.0)
+risk_aversion = st.slider("Risk Aversion (γ):  Maximum Risk Taking - Maximum Risk Aversion",min_value=1.0, max_value=10.0, step=0.1, value=2.0)
 st.write("Risk Aversion (γ) = ", risk_aversion)
 
 # Find min and max months
@@ -79,6 +84,8 @@ min_month = df['Date'].dt.to_period('M').min()
 max_month = df['Date'].dt.to_period('M').max()
 
 # User input for in-sample period end month
+for i in range(1,18): #Aligning sidebar display
+    st.sidebar.write("")
 st.sidebar.write("### Select In-Sample Period")
 st.sidebar.write(f"The data is available from {min_month} to {max_month}. Please allow atleast 2 years of data for training the model.")
 in_sample_start_month = st.sidebar.selectbox("Select start month for in-sample period",
