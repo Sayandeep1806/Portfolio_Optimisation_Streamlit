@@ -175,8 +175,8 @@ forecast_df['Forecasted_SPX_Excess_Returns'] = forecast_df['Forecasted_SPX_Retur
 
 # Calculating Variance
 mean_of_SPX_returns = np.log(filtered_df['SPX'] / filtered_df['SPX'].shift(1)).mean()    # Finding mean of actual SPX returns   
-forecast_df['Actual_SPX_Variance'] = (forecast_df['Actual_SPX_Excess_Returns']- mean_of_SPX_returns) ** 2 
-forecast_df['Forecasted_SPX_Variance'] = (forecast_df['Forecasted_SPX_Excess_Returns']- mean_of_SPX_returns) ** 2 
+forecast_df['Actual_SPX_Variance'] = (forecast_df['Actual_SPX_Returns']- mean_of_SPX_returns) ** 2 
+forecast_df['Forecasted_SPX_Variance'] = (forecast_df['Forecasted_SPX_Returns']- mean_of_SPX_returns) ** 2 
 
 # Finding weights for SPX
 def assign_weight(ER,Var):
