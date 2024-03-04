@@ -1,5 +1,5 @@
 import streamlit as st
-from streamlit_extras.app_logo import add_logo
+from PIL import Image
 import pandas as pd
 import numpy as np
 from statsmodels.tsa.statespace.sarimax import SARIMAX
@@ -67,11 +67,12 @@ def forecast_SPX(spx_data, in_sample_start_month,in_sample_end_month, out_sample
     
     return forecasts
 
+# Logo
+img = Image.open("logo.png")
+st.image(img)
+                 
 # Streamlit app
 st.title('Portfolio Optimisation Tool')
-
-# Logo
-add_logo("logo.png")
 
 # Ask the user to enter the risk aversion
 st.write("## Select User Risk Appetite")
