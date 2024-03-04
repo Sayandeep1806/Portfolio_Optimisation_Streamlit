@@ -1,4 +1,5 @@
 import streamlit as st
+from streamlit_extras.app_logo import add_logo
 import pandas as pd
 import numpy as np
 from statsmodels.tsa.statespace.sarimax import SARIMAX
@@ -69,9 +70,12 @@ def forecast_SPX(spx_data, in_sample_start_month,in_sample_end_month, out_sample
 # Streamlit app
 st.title('Portfolio Optimisation Tool')
 
+# Logo
+add_logo("logo.png")
+
 # Ask the user to enter the risk aversion
 st.write("## Select User Risk Appetite")
-risk_aversion = st.slider("### Risk Aversion (γ):  Maximum Risk Taking - Maximum Risk Aversion",min_value=1.0, max_value=10.0, step=0.1, value=2.0)
+risk_aversion = st.slider("Risk Aversion (γ):  Maximum Risk Taking - Maximum Risk Aversion",min_value=1.0, max_value=10.0, step=0.1, value=2.0)
 st.write("Risk Aversion (γ) = ", risk_aversion)
 
 # Find min and max months
