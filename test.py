@@ -84,6 +84,9 @@ min_month = df['Date'].dt.to_period('M').min()
 max_month = df['Date'].dt.to_period('M').max()
 
 # User input for in-sample period end month
+st.sidebar.write("")
+st.sidebar.write("")
+st.sidebar.write("")
 st.sidebar.write("### Select In-Sample Period")
 st.sidebar.write(f"The data is available from {min_month} to {max_month}. Please allow atleast 2 years of data for training the model.")
 in_sample_start_month = st.sidebar.selectbox("Select start month for in-sample period",
